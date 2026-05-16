@@ -25,7 +25,7 @@ const platformConfig = {
 function MetaItem({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[10px] text-[#444] uppercase tracking-widest">{label}</span>
+      <span className="text-[10px] text-[#555] uppercase tracking-widest">{label}</span>
       <div className="text-xs text-[#888]">{children}</div>
     </div>
   )
@@ -43,14 +43,14 @@ export function AnalysisPanel({ bug, onClose }: { bug: Bug; onClose: () => void 
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-[#1a1a1a] shrink-0">
         <div className="flex items-center gap-2">
-          <span className="font-mono text-[11px] text-[#555]">{bug.id}</span>
+          <span className="font-mono text-[11px] text-[#666]">{bug.id}</span>
           <span className={`text-[10px] font-medium font-mono px-1.5 py-0.5 rounded border ${plConfig.className}`}>
             {plConfig.label}
           </span>
         </div>
         <button
           onClick={onClose}
-          className="text-[#444] hover:text-white transition-colors p-1 -mr-1 rounded"
+          className="text-[#555] hover:text-white transition-colors p-1 -mr-1 rounded"
           aria-label="Close panel"
         >
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
@@ -84,17 +84,17 @@ export function AnalysisPanel({ bug, onClose }: { bug: Bug; onClose: () => void 
       {/* Output — fills all remaining height inside the capped card */}
       <div className="flex flex-col flex-1 min-h-0 px-4 py-4">
         <div className="flex items-center justify-between mb-3 shrink-0">
-          <span className="text-[10px] text-[#444] uppercase tracking-widest">Analysis</span>
+          <span className="text-[10px] text-[#555] uppercase tracking-widest">Analysis</span>
           <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#333]" />
-            <span className="text-[10px] text-[#444]">Idle</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#444]" />
+            <span className="text-[10px] text-[#555]">Idle</span>
           </div>
         </div>
 
         <div className="flex-1 min-h-0 bg-[#050505] border border-[#111] rounded-md p-4 overflow-y-auto font-mono text-xs leading-relaxed">
-          <span className="text-[#2a2a2a] select-none">{'// Agent output will stream here...\n\n'}</span>
-          <span className="text-[#1e1e1e] select-none">{'> Waiting for analysis to run'}</span>
-          <span className="inline-block w-[7px] h-[13px] bg-[#1e1e1e] ml-0.5 align-text-bottom animate-pulse select-none" />
+          <span className="text-[#444] select-none">{'// Agent output will stream here...\n\n'}</span>
+          <span className="text-[#444] select-none">{'> Waiting for analysis to run'}</span>
+          <span className="inline-block w-[7px] h-[13px] bg-[#444] ml-0.5 align-text-bottom animate-pulse select-none" />
         </div>
       </div>
 

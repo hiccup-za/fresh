@@ -85,7 +85,7 @@ export function Sidebar({ collapsed }: SidebarProps) {
       {/* Footer */}
       {!collapsed && (
         <div className="px-5 py-4 border-t border-[#1a1a1a]">
-          <p className="text-[11px] text-[#444] font-mono">v0.1.0</p>
+          <p className="text-[11px] text-[#555] font-mono">v0.1.0</p>
         </div>
       )}
     </aside>

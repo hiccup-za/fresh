@@ -80,7 +80,7 @@ function FilterDropdown<T extends string>({
           'flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-xs transition-colors',
           active
             ? 'border-[#333] text-white bg-[#111]'
-            : 'border-[#1a1a1a] text-[#555] bg-[#050505] hover:text-[#888] hover:border-[#262626]',
+            : 'border-[#1a1a1a] text-white bg-[#050505] hover:border-[#262626]',
         ].join(' ')}
       >
         {active ? currentLabel : label}
@@ -102,7 +102,7 @@ function FilterDropdown<T extends string>({
                 'w-full text-left px-3 py-2 text-xs transition-colors',
                 opt.value === value
                   ? 'text-white bg-[#1a1a1a]'
-                  : 'text-[#888] hover:text-white hover:bg-[#111]',
+                  : 'text-white hover:bg-[#111]',
               ].join(' ')}
             >
               {opt.label}
@@ -245,7 +245,7 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
                       onClick={() => setPlatform(value)}
                       className={[
                         'px-3 py-1 rounded text-xs transition-colors',
-                        platform === value ? 'bg-[#1a1a1a] text-white' : 'text-[#555] hover:text-[#888]',
+                        platform === value ? 'bg-[#1a1a1a] text-white' : 'text-white',
                       ].join(' ')}
                     >
                       {label}
@@ -262,30 +262,30 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
             <FilterDropdown label="Freshness" value={freshness} options={FRESHNESS_OPTIONS}  onChange={setFreshness} active={freshness !== 'all'} />
 
             {hasActiveFilter && (
-              <button onClick={clearAll} className="text-xs text-[#444] hover:text-[#888] transition-colors ml-1">
+              <button onClick={clearAll} className="text-xs text-[#555] hover:text-[#888] transition-colors ml-1">
                 Clear
               </button>
             )}
 
-            <span className="text-xs text-[#444] ml-auto">{filtered.length} bugs</span>
+            <span className="text-xs text-[#555] ml-auto">{filtered.length} bugs</span>
           </div>
 
           {/* Column headers */}
           <div className="flex items-center gap-4 px-5 py-2 border-b border-[#111] bg-[#050505]">
             <span className={COL.chevron} />
-            {showSource && <span className={`text-[10px] text-[#444] uppercase tracking-widest ${COL.platform}`}>Source</span>}
-            <span className={`text-[10px] text-[#444] uppercase tracking-widest ${COL.id}`}>ID</span>
-            <span className={`text-[10px] text-[#444] uppercase tracking-widest ${COL.title}`}>Title</span>
-            <span className={`text-[10px] text-[#444] uppercase tracking-widest ${COL.priority}`}>Priority</span>
-            <span className={`text-[10px] text-[#444] uppercase tracking-widest ${COL.status}`}>Status</span>
-            <span className={`text-[10px] text-[#444] uppercase tracking-widest ${COL.freshness}`}>Freshness</span>
-            <span className={`text-[10px] text-[#444] uppercase tracking-widest ${COL.created} text-right`}>Created</span>
+            {showSource && <span className={`text-[10px] text-[#555] uppercase tracking-widest ${COL.platform}`}>Source</span>}
+            <span className={`text-[10px] text-[#555] uppercase tracking-widest ${COL.id}`}>ID</span>
+            <span className={`text-[10px] text-[#555] uppercase tracking-widest ${COL.title}`}>Title</span>
+            <span className={`text-[10px] text-[#555] uppercase tracking-widest ${COL.priority}`}>Priority</span>
+            <span className={`text-[10px] text-[#555] uppercase tracking-widest ${COL.status}`}>Status</span>
+            <span className={`text-[10px] text-[#555] uppercase tracking-widest ${COL.freshness}`}>Freshness</span>
+            <span className={`text-[10px] text-[#555] uppercase tracking-widest ${COL.created} text-right`}>Created</span>
             {/* Spacer matching the Analyze button width */}
             <span className="w-20 shrink-0" />
           </div>
 
           {filtered.length === 0 ? (
-            <div className="px-5 py-12 text-center text-sm text-[#444]">No bugs match the current filters.</div>
+            <div className="px-5 py-12 text-center text-sm text-[#555]">No bugs match the current filters.</div>
           ) : (
             groups.map((group) => (
               <BugGroupSection

@@ -15,10 +15,10 @@ export function BugGroupSection({ group, onAnalyze, selectedBugId, expandedBugId
   return (
     <div>
       <div className="sticky top-0 z-10 px-5 py-2 bg-[#000] border-b border-[#1a1a1a] flex items-center justify-between">
-        <span className="text-xs font-medium text-[#555] uppercase tracking-widest">
+        <span className="text-xs font-medium text-[#666] uppercase tracking-widest">
           {group.label}
         </span>
-        <span className="text-xs text-[#333]">{group.bugs.length} bugs</span>
+        <span className="text-xs text-[#555]">{group.bugs.length} bugs</span>
       </div>
       <div>
         {group.bugs.map((bug) => (

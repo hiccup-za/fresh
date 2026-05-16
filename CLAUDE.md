@@ -41,7 +41,7 @@ app/
   page.tsx              — redirect('/dashboard')
   layout.tsx            — root layout: Geist font, Shell wrapper, dark bg
   dashboard/page.tsx    — server component; passes all mock bugs to BugTable
-  settings/page.tsx     — client component; 3-tab switcher (Jira/Linear/Slack), persists to localStorage
+  settings/page.tsx     — client component; Linear + Jira side-by-side (2-col grid) with enable toggles, Slack section below; persists to localStorage
   api/slack/send/       — POST route: validates webhook URL, builds report via lib/slack.ts, POSTs to Slack
 
 lib/
@@ -72,5 +72,11 @@ components/
 **Data flow**: Mock data → `dashboard/page.tsx` (server) → `BugTable` (client). Freshness is derived at render time via `getFreshness(createdAt)` — never stored. Filtering (platform/priority/status/freshness) runs entirely in `BugTable` state. Settings are localStorage-only (`fresh-settings` key); `BugTable` listens for `fresh-settings-changed` and `storage` events to react to changes. When real integrations are added, replace the mock imports in `dashboard/page.tsx`.
 
 **Slack integration**: `SlackPanel` → `POST /api/slack/send` → `buildSlackReport()` → Slack Incoming Webhook. The API route validates that the webhook URL starts with `https://hooks.slack.com/`. Scheduled delivery is not yet wired — the schedule field is UI-only.
+
+**Freshness thresholds** (from `lib/classify.ts`): < 30 days → fresh · 30–60 days → decaying · > 60 days → stale. Computed at render time, never stored.
+
+**Platform filter visibility**: `BugTable` reads `fresh-settings` from localStorage on mount and on `fresh-settings-changed` / `storage` events. If neither platform is enabled, all bugs show and the platform segmented control is hidden. If only one is enabled, only that platform's bugs show (no segmented control). If both are enabled, the platform segmented control appears and both datasets are shown.
+
+**Shell / Sidebar**: `Shell` (`components/layout/shell.tsx`) is a client component that holds sidebar collapse state (`useState`). `Sidebar` accepts a `collapsed` prop and animates width between `w-14` (icons only) and `w-56` (icons + labels). Icons come from `@phosphor-icons/react`.
 
 **Styling**: Tailwind CSS v4 (no `tailwind.config.ts` — import-based). Dark-mode Vercel palette: `#000` page bg, `#0a0a0a` cards, `#1a1a1a` borders. Freshness accent colors: `#22c55e` fresh · `#f59e0b` decaying · `#ef4444` stale. `@/*` aliases to `src/*`.

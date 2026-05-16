@@ -37,7 +37,7 @@ function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void 
       onClick={onToggle}
       className={[
         'relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none',
-        enabled ? 'bg-[#22c55e]' : 'bg-[#2a2a2a]',
+        enabled ? 'bg-[#22c55e]' : 'bg-[#333]',
       ].join(' ')}
     >
       <span
@@ -51,14 +51,15 @@ function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void 
 }
 
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<AppSettings>(() => {
+  const [settings, setSettings] = useState<AppSettings>(defaults)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) return { ...defaults, ...JSON.parse(raw) }
+      if (raw) setSettings((prev) => ({ ...prev, ...JSON.parse(raw) }))
     } catch {}
-    return defaults
-  })
-  const [saved, setSaved] = useState(false)
+  }, [])
 
   function save() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings))
@@ -71,7 +72,7 @@ export default function SettingsPage() {
     <div className="px-8 pt-6 pb-8 max-w-4xl">
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-white mb-1">Settings</h1>
-        <p className="text-sm text-[#555]">Configure your task management platform integrations</p>
+        <p className="text-sm text-[#888]">Configure your task management platform integrations</p>
       </div>
 
       {/* Bug trackers — side by side, Linear left */}
@@ -134,7 +135,7 @@ export default function SettingsPage() {
       {/* Slack */}
       <div className="mb-4">
         <h2 className="text-base font-semibold text-white mb-1">Slack</h2>
-        <p className="text-sm text-[#555]">Send scheduled bug freshness reports to a Slack channel</p>
+        <p className="text-sm text-[#888]">Send scheduled bug freshness reports to a Slack channel</p>
       </div>
 
       <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-6">

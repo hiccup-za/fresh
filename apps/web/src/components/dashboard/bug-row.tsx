@@ -24,6 +24,14 @@ const platformConfig = {
   linear: { label: 'Linear', className: 'text-[#5e6ad2] bg-[#5e6ad2]/10 border-[#5e6ad2]/20' },
 }
 
+const statusConfig: Record<string, string> = {
+  'Open':        'text-[#3b82f6] bg-[#3b82f6]/10 border-[#3b82f6]/20',
+  'Todo':        'text-[#888] bg-[#888]/10 border-[#888]/20',
+  'In Progress': 'text-[#f59e0b] bg-[#f59e0b]/10 border-[#f59e0b]/20',
+  'In Review':   'text-[#a855f7] bg-[#a855f7]/10 border-[#a855f7]/20',
+  'Backlog':     'text-[#555] bg-[#555]/10 border-[#555]/20',
+}
+
 const outcomeConfig: Record<AnalysisOutcome, { label: string; className: string }> = {
   completed: { label: 'Completed', className: 'text-[#22c55e] bg-[#22c55e]/10 border-[#22c55e]/20' },
   stopped:   { label: 'Stopped',   className: 'text-[#f59e0b] bg-[#f59e0b]/10 border-[#f59e0b]/20' },
@@ -34,16 +42,16 @@ function HistoryPanel({ history }: { history: AnalysisRun[] }) {
   return (
     <div className="px-5 py-4 bg-[#050505] border-t border-[#0d0d0d]">
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-[10px] text-[#444] uppercase tracking-widest">Analysis History</span>
+        <span className="text-[10px] text-[#555] uppercase tracking-widest">Analysis History</span>
         {history.length > 0 && (
-          <span className="text-[10px] text-[#2a2a2a]">
+          <span className="text-[10px] text-[#555]">
             {history.length} {history.length === 1 ? 'run' : 'runs'}
           </span>
         )}
       </div>
 
       {history.length === 0 ? (
-        <p className="text-[11px] text-[#333] italic">No analysis runs yet.</p>
+        <p className="text-[11px] text-[#555] italic">No analysis runs yet.</p>
       ) : (
         <div className="flex flex-col gap-2">
           {history.map((run) => {
@@ -54,9 +62,9 @@ function HistoryPanel({ history }: { history: AnalysisRun[] }) {
                   {oc.label}
                 </span>
                 {run.note && (
-                  <span className="text-[11px] text-[#555] flex-1 min-w-0 truncate">{run.note}</span>
+                  <span className="text-[11px] text-[#666] flex-1 min-w-0 truncate">{run.note}</span>
                 )}
-                <span className="text-[11px] text-[#333] shrink-0 ml-auto tabular-nums">
+                <span className="text-[11px] text-[#555] shrink-0 ml-auto tabular-nums">
                   {getShortRelativeTime(run.ranAt)}
                 </span>
               </div>
@@ -102,7 +110,7 @@ export function BugRow({ bug, onAnalyze, isSelected, isExpanded, onToggleExpand,
         <div className={COL.chevron}>
           <svg
             width="10" height="10" viewBox="0 0 10 10" fill="none"
-            className={`transition-transform text-[#2a2a2a] group-hover:text-[#444] ${isExpanded ? 'rotate-90' : ''}`}
+            className={`transition-transform text-[#444] group-hover:text-[#666] ${isExpanded ? 'rotate-90' : ''}`}
           >
             <path d="M3 2l4 3-4 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -118,25 +126,27 @@ export function BugRow({ bug, onAnalyze, isSelected, isExpanded, onToggleExpand,
         )}
 
         {/* ID */}
-        <span className={`text-[11px] text-[#555] font-mono truncate ${COL.id}`}>
+        <span className={`text-[11px] text-[#888] font-mono truncate ${COL.id}`}>
           {bug.id}
         </span>
 
         {/* Title */}
-        <span className={`text-sm text-[#ccc] group-hover:text-white transition-colors truncate ${COL.title}`}>
+        <span className={`text-sm text-white truncate ${COL.title}`}>
           {bug.title}
         </span>
 
         {/* Priority */}
         <div className={`flex items-center gap-1.5 ${COL.priority}`}>
           <span className={`w-1.5 h-1.5 shrink-0 rounded-full ${pConfig.dot}`} />
-          <span className="text-[11px] text-[#555] truncate">{pConfig.label}</span>
+          <span className="text-[11px] text-[#aaa] truncate">{pConfig.label}</span>
         </div>
 
         {/* Status */}
-        <span className={`text-[11px] text-[#555] truncate ${COL.status}`}>
-          {bug.status}
-        </span>
+        <div className={COL.status}>
+          <span className={`inline-block text-[10px] font-medium px-2 py-0.5 rounded-full border ${statusConfig[bug.status] ?? 'text-[#888] bg-[#888]/10 border-[#888]/20'}`}>
+            {bug.status}
+          </span>
+        </div>
 
         {/* Freshness */}
         <div className={COL.freshness}>
@@ -146,7 +156,7 @@ export function BugRow({ bug, onAnalyze, isSelected, isExpanded, onToggleExpand,
         </div>
 
         {/* Created */}
-        <span className={`text-[11px] text-[#444] text-right ${COL.created}`}>
+        <span className={`text-[11px] text-[#888] text-right ${COL.created}`}>
           {getRelativeTime(bug.createdAt)}
         </span>
 

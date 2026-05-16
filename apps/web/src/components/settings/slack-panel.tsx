@@ -77,7 +77,7 @@ export function SlackPanel({ value, onChange }: Props) {
             )}
           </button>
         </div>
-        <p className="text-[11px] text-[#444]">
+        <p className="text-[11px] text-[#555]">
           Create an Incoming Webhook in your Slack app settings
         </p>
       </div>
@@ -96,7 +96,7 @@ export function SlackPanel({ value, onChange }: Props) {
             </option>
           ))}
         </select>
-        <p className="text-[11px] text-[#444]">Automated delivery coming soon — use Send now to test</p>
+        <p className="text-[11px] text-[#555]">Automated delivery coming soon — use Send now to test</p>
       </div>
 
       {/* Send now */}
@@ -105,7 +105,7 @@ export function SlackPanel({ value, onChange }: Props) {
           type="button"
           onClick={sendNow}
           disabled={!value.webhookUrl || sendState === 'sending'}
-          className="px-4 py-2 bg-[#1a1a1a] border border-[#2a2a2a] text-white text-sm font-medium rounded-md hover:bg-[#222] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-[#1a1a1a] border border-[#333] text-white text-sm font-medium rounded-md hover:bg-[#222] transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {sendState === 'sending' ? 'Sending…' : 'Send now'}
         </button>

@@ -13,7 +13,7 @@ export default function DashboardPage() {
     <div className="px-8 pt-6 pb-8">
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-white mb-1">Dashboard</h1>
-        <p className="text-sm text-[#555]">Bug freshness across all connected platforms</p>
+        <p className="text-sm text-[#888]">Bug freshness across all connected platforms</p>
       </div>
 
       <BugTable bugs={allBugs} />

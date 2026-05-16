@@ -111,7 +111,7 @@ export function JiraPanel({ value, onChange }: Props) {
         </div>
 
         {value.projects.length === 0 && (
-          <p className="text-xs text-[#444] py-2">No projects added yet.</p>
+          <p className="text-xs text-[#555] py-2">No projects added yet.</p>
         )}
 
         {value.projects.map((project, idx) => (
@@ -133,7 +133,7 @@ export function JiraPanel({ value, onChange }: Props) {
             <button
               type="button"
               onClick={() => removeProject(idx)}
-              className="text-[#444] hover:text-[#ef4444] transition-colors shrink-0"
+              className="text-[#555] hover:text-[#ef4444] transition-colors shrink-0"
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
                 <path d="M12 4L4 12M4 4l8 8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
