@@ -1,8 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { Leaf } from '@phosphor-icons/react'
+import { usePathname, useRouter } from 'next/navigation'
+import { Leaf, SignOut } from '@phosphor-icons/react'
 
 const nav = [
   {
@@ -39,6 +39,7 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
 
   return (
     <aside
@@ -83,11 +84,27 @@ export function Sidebar({ collapsed }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      {!collapsed && (
-        <div className="px-5 py-4 border-t border-[#1a1a1a]">
-          <p className="text-[11px] text-[#555] font-mono">v0.1.0</p>
-        </div>
-      )}
+      <div className={[
+        'border-t border-[#1a1a1a] shrink-0',
+        collapsed ? 'p-2' : 'p-2',
+      ].join(' ')}>
+        <button
+          onClick={() => router.push('/login')}
+          title={collapsed ? 'Sign out' : undefined}
+          className={[
+            'flex items-center gap-2.5 rounded-md text-sm w-full transition-colors text-[#888] hover:text-white hover:bg-[#111]',
+            collapsed ? 'justify-center px-0 py-2' : 'px-3 py-2',
+          ].join(' ')}
+        >
+          <span className="text-[#555]">
+            <SignOut size={16} />
+          </span>
+          {!collapsed && 'Sign out'}
+        </button>
+        {!collapsed && (
+          <p className="text-[11px] text-[#555] font-mono px-3 pt-1">v0.1.0</p>
+        )}
+      </div>
     </aside>
   )
 }
