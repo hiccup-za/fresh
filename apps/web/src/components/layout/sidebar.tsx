@@ -27,7 +27,7 @@ const MOCK_USER = {
   initials: 'CZ',
 }
 
-const APP_VERSION = 'v0.7.0'
+const APP_VERSION = 'v0.8.0'
 
 interface SidebarProps {
   collapsed: boolean
