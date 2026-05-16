@@ -81,8 +81,8 @@ export function LinearPanel({ value, onChange }: Props) {
         label="Team IDs"
         value={value.teamIds}
         onChange={(v) => onChange({ ...value, teamIds: v })}
-        placeholder="team-id-1, team-id-2"
-        hint="Comma-separated Linear team IDs"
+        placeholder="ENG, AI"
+        hint="Comma-separated Linear team keys (the short identifier, e.g. ENG)"
         testId="linear-team-ids"
       />
 

@@ -146,7 +146,17 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
   const [liveJiraBugs,    setLiveJiraBugs]    = useState<Bug[]>([])
   const [jiraLoading,     setJiraLoading]     = useState(false)
   const [jiraError,       setJiraError]       = useState<string | null>(null)
-  const [refreshTick,     setRefreshTick]     = useState(0)
+
+  // Linear live-fetch state
+  const [linearEnabled,     setLinearEnabled]     = useState(false)
+  const [linearApiKey,      setLinearApiKey]      = useState('')
+  const [linearTeamIds,     setLinearTeamIds]     = useState('')
+  const [linearFilterLabel, setLinearFilterLabel] = useState('')
+  const [liveLinearBugs,    setLiveLinearBugs]    = useState<Bug[]>([])
+  const [linearLoading,     setLinearLoading]     = useState(false)
+  const [linearError,       setLinearError]       = useState<string | null>(null)
+
+  const [refreshTick, setRefreshTick] = useState(0)
 
   const panelWrapperRef = useRef<HTMLDivElement>(null)
   const [panelHeight,  setPanelHeight]  = useState<number>(0)
@@ -170,6 +180,10 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
           setJiraProjectKeys(
             (s.jira?.projects ?? []).map((p: { projectKey: string }) => p.projectKey).filter(Boolean)
           )
+          setLinearEnabled(s.linear?.enabled ?? false)
+          setLinearApiKey(s.linear?.apiKey ?? '')
+          setLinearTeamIds(s.linear?.teamIds ?? '')
+          setLinearFilterLabel(s.linear?.filterLabel ?? '')
         } else {
           setEnabledPlatforms({ jira: false, linear: false })
           setEnableMockData(true)
@@ -179,6 +193,10 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
           setJiraEmail('')
           setJiraApiToken('')
           setJiraProjectKeys([])
+          setLinearEnabled(false)
+          setLinearApiKey('')
+          setLinearTeamIds('')
+          setLinearFilterLabel('')
         }
       } catch {}
     }
@@ -236,6 +254,49 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enableMockData, jiraEnabled, jiraBaseUrl, jiraEmail, jiraApiToken, jiraProjectKeys.join(','), refreshTick])
 
+  // Fetch live Linear bugs whenever relevant settings change
+  useEffect(() => {
+    if (enableMockData || !linearEnabled || !linearApiKey) {
+      setLiveLinearBugs([])
+      setLinearLoading(false)
+      setLinearError(null)
+      return
+    }
+
+    let cancelled = false
+    setLinearLoading(true)
+    setLinearError(null)
+
+    fetch('/api/linear/issues', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ apiKey: linearApiKey, teamIds: linearTeamIds, filterLabel: linearFilterLabel }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return
+        if (data.error) {
+          setLinearError(data.error)
+          setLiveLinearBugs([])
+        } else {
+          setLiveLinearBugs(
+            (data.bugs ?? []).map((b: Bug & { createdAt: string }) => ({ ...b, createdAt: new Date(b.createdAt) }))
+          )
+          setLinearError(null)
+        }
+      })
+      .catch((err: Error) => {
+        if (cancelled) return
+        setLinearError(err.message ?? 'Failed to fetch Linear issues')
+        setLiveLinearBugs([])
+      })
+      .finally(() => {
+        if (!cancelled) setLinearLoading(false)
+      })
+
+    return () => { cancelled = true }
+  }, [enableMockData, linearEnabled, linearApiKey, linearTeamIds, linearFilterLabel, refreshTick])
+
   useEffect(() => {
     if (!selectedBug) return
     function recalc() {
@@ -267,7 +328,7 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
     if (!showPlatformFilter) setPlatform('all')
   }, [showPlatformFilter])
 
-  const activeBugs = enableMockData ? bugs : liveJiraBugs
+  const activeBugs = enableMockData ? bugs : [...liveJiraBugs, ...liveLinearBugs]
   const sourceBugs = anyEnabled ? activeBugs.filter((b) => enabledPlatforms[b.platform]) : activeBugs
 
   const statusOptions: { value: StatusFilter; label: string }[] = [
@@ -310,7 +371,10 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
     setExpandedBugId((prev) => prev === bugId ? null : bugId)
   }, [])
 
-  if (!enableMockData && !jiraLoading && activeBugs.length === 0 && !jiraError) {
+  const anyLoading = jiraLoading || linearLoading
+  const anyLiveEnabled = jiraEnabled || linearEnabled
+
+  if (!enableMockData && !anyLoading && activeBugs.length === 0 && !jiraError && !linearError && !anyLiveEnabled) {
     return (
       <>
         <div className="mb-8">
@@ -342,12 +406,12 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
         <div data-testid="issues-table" className="flex-1 min-w-0 border border-[#1a1a1a] rounded-lg overflow-hidden">
 
           {/* Loading / error banners */}
-          {jiraLoading && (
+          {(jiraLoading || linearLoading) && (
             <div className="px-5 py-2.5 border-b border-[#1a1a1a] flex items-center gap-2 text-xs text-[#888]">
               <svg className="animate-spin" width="12" height="12" viewBox="0 0 16 16" fill="none">
                 <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10" />
               </svg>
-              Fetching Jira issues…
+              Fetching {[jiraLoading && 'Jira', linearLoading && 'Linear'].filter(Boolean).join(' & ')} issues…
             </div>
           )}
           {jiraError && (
@@ -356,7 +420,16 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
                 <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" />
                 <path d="M8 5v4M8 11v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
-              {jiraError}
+              Jira: {jiraError}
+            </div>
+          )}
+          {linearError && (
+            <div className="px-5 py-2.5 border-b border-[#1a1a1a] flex items-center gap-2 text-xs text-[#ef4444]">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M8 5v4M8 11v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              Linear: {linearError}
             </div>
           )}
 
@@ -395,16 +468,16 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
             )}
 
             <div className="ml-auto flex items-center gap-3">
-              {!enableMockData && jiraEnabled && (
+              {!enableMockData && anyLiveEnabled && (
                 <button
                   data-testid="refresh-btn"
                   onClick={() => setRefreshTick((t) => t + 1)}
-                  disabled={jiraLoading}
+                  disabled={anyLoading}
                   className="flex items-center gap-1.5 text-xs text-[#555] hover:text-[#888] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   <svg
                     width="11" height="11" viewBox="0 0 16 16" fill="none"
-                    className={jiraLoading ? 'animate-spin' : ''}
+                    className={anyLoading ? 'animate-spin' : ''}
                   >
                     <path d="M13.5 8A5.5 5.5 0 1 1 10 3.07" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
                     <path d="M10 1v3h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

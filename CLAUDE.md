@@ -18,7 +18,7 @@ bun start           # serve production build
 bun x tsc --noEmit  # type-check (no typecheck script exists — use bun x tsc directly)
 ```
 
-No test runner or linter is configured yet.
+No test runner or linter is configured yet. `TASK.md` in the repo root contains a step-by-step plan for adding Vitest + CI + Slack CI reporting — work through that file before designing any new test infrastructure.
 
 ## Next.js version warning
 
@@ -38,6 +38,7 @@ This is **Next.js 16**, not 15. Before writing any Next.js-specific code, read t
 - `(app)/dashboard` and `(app)/settings` — main app pages wrapped in the Shell layout
 - `api/slack/send/` — POST route validating webhook URL and forwarding Slack Block Kit payload
 - `api/jira/issues/` — POST route that proxies to the Jira REST API (`/rest/api/3/search/jql`) using Basic auth; normalises results to `Bug[]`; exists to avoid CORS from the browser
+- `api/linear/issues/` — POST route that proxies to the Linear GraphQL API (`https://api.linear.app/graphql`); accepts `{ apiKey, teamIds, filterLabel }`; `teamIds` must be team **keys** (e.g. `"AI"`, `"ENG"`) not UUIDs — the `IssueFilter` uses `team: { key: { in: [...] } }`
 
 **`apps/web/src/` structure:**
 
@@ -79,7 +80,7 @@ components/
 
 **Data flow (mock mode)**: Mock data → `dashboard/page.tsx` (server) → `BugTable` (client) as props. Freshness is derived at render time via `getFreshness(createdAt)` — never stored. Filtering (platform/priority/status/freshness) runs entirely in `BugTable` state. Settings are localStorage-only (`fresh-settings` key); `BugTable` listens for `fresh-settings-changed` and `storage` events to react to changes.
 
-**Data flow (live mode)**: When `developer.enableMockData` is false, `BugTable` ignores the mock props and fetches live data directly. For Jira: it reads credentials from localStorage and `POST`s to `/api/jira/issues`, which proxies to Jira server-side. A `refreshTick` counter state triggers a re-fetch when the Refresh button is clicked. Loading and error states are shown as banners above the toolbar. Adding a new live integration follows the same pattern inside `BugTable` — no changes needed in the server page.
+**Data flow (live mode)**: When `developer.enableMockData` is false, `BugTable` ignores the mock props and fetches live data directly. Jira and Linear each have their own state slice (`jiraEnabled/jiraLoading/jiraError/liveJiraBugs` and the equivalent `linear*` vars), their own `useEffect` fetch, and their own error banner. Both are triggered by a shared `refreshTick` counter. The active bugs are `[...liveJiraBugs, ...liveLinearBugs]`. Adding another live integration follows the same pattern — no changes needed in the server page.
 
 **Developer settings** (`DeveloperSettings` in `AppSettings`): four flags persisted under `fresh-settings.developer` in localStorage:
 - `enableMockData` — also force-enables/disables both platform toggles when flipped

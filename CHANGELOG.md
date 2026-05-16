@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-05-16
+
+### Added
+- Live Linear integration: new support for fetching real-time issues from Linear when mock mode is disabled
+- Linear API key and team/label configuration panels in the Data Sources section
+- Loading and error states for Linear issue fetching with status indicators
+
+### Changed
+- Platform segmented control and data source handling updated to support both Jira and Linear simultaneously
+- Developer settings now control both Jira and Linear data source toggles independently
+- Enhanced data source configuration UI with Mock/Live status badges
+
 ## [0.7.0] - 2026-05-16
 
 ### Added
