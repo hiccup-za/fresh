@@ -8,15 +8,14 @@ All commands can be run from the **repo root** via Turbo, or from `apps/web/` di
 
 ```bash
 # From repo root
-bun dev          # start all apps in dev mode
-bun build        # build all apps
-bun typecheck    # type-check all apps
+bun dev    # start all apps in dev mode
+bun build  # build all apps
 
 # From apps/web/
-bun dev          # Next.js dev server (Turbopack, default in v16)
-bun build        # production build
-bun start        # serve production build
-npx tsc --noEmit # type-check only
+bun dev             # Next.js dev server (Turbopack, default in v16)
+bun build           # production build
+bun start           # serve production build
+bun x tsc --noEmit  # type-check (no typecheck script exists — use bun x tsc directly)
 ```
 
 No test runner or linter is configured yet.
@@ -38,6 +37,7 @@ This is **Next.js 16**, not 15. Before writing any Next.js-specific code, read t
 - `(auth)/login` — mock-only login page; any valid-format credentials pass, no backend auth
 - `(app)/dashboard` and `(app)/settings` — main app pages wrapped in the Shell layout
 - `api/slack/send/` — POST route validating webhook URL and forwarding Slack Block Kit payload
+- `api/jira/issues/` — POST route that proxies to the Jira REST API (`/rest/api/3/search/jql`) using Basic auth; normalises results to `Bug[]`; exists to avoid CORS from the browser
 
 **`apps/web/src/` structure:**
 
@@ -77,7 +77,9 @@ components/
     test-id-highlighter.tsx — mounts in root layout; toggles data-show-test-ids on <html> based on developer.showTestIds setting
 ```
 
-**Data flow**: Mock data → `dashboard/page.tsx` (server) → `BugTable` (client). Freshness is derived at render time via `getFreshness(createdAt)` — never stored. Filtering (platform/priority/status/freshness) runs entirely in `BugTable` state. Settings are localStorage-only (`fresh-settings` key); `BugTable` listens for `fresh-settings-changed` and `storage` events to react to changes. When real integrations are added, replace the mock imports in `dashboard/page.tsx`.
+**Data flow (mock mode)**: Mock data → `dashboard/page.tsx` (server) → `BugTable` (client) as props. Freshness is derived at render time via `getFreshness(createdAt)` — never stored. Filtering (platform/priority/status/freshness) runs entirely in `BugTable` state. Settings are localStorage-only (`fresh-settings` key); `BugTable` listens for `fresh-settings-changed` and `storage` events to react to changes.
+
+**Data flow (live mode)**: When `developer.enableMockData` is false, `BugTable` ignores the mock props and fetches live data directly. For Jira: it reads credentials from localStorage and `POST`s to `/api/jira/issues`, which proxies to Jira server-side. A `refreshTick` counter state triggers a re-fetch when the Refresh button is clicked. Loading and error states are shown as banners above the toolbar. Adding a new live integration follows the same pattern inside `BugTable` — no changes needed in the server page.
 
 **Developer settings** (`DeveloperSettings` in `AppSettings`): four flags persisted under `fresh-settings.developer` in localStorage:
 - `enableMockData` — also force-enables/disables both platform toggles when flipped

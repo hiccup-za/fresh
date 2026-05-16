@@ -137,6 +137,17 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
   const [enableMockData, setEnableMockData] = useState(true)
   const [enableAnalyze,  setEnableAnalyze]  = useState(true)
 
+  // Jira live-fetch state
+  const [jiraEnabled,     setJiraEnabled]     = useState(false)
+  const [jiraBaseUrl,     setJiraBaseUrl]     = useState('')
+  const [jiraEmail,       setJiraEmail]       = useState('')
+  const [jiraApiToken,    setJiraApiToken]    = useState('')
+  const [jiraProjectKeys, setJiraProjectKeys] = useState<string[]>([])
+  const [liveJiraBugs,    setLiveJiraBugs]    = useState<Bug[]>([])
+  const [jiraLoading,     setJiraLoading]     = useState(false)
+  const [jiraError,       setJiraError]       = useState<string | null>(null)
+  const [refreshTick,     setRefreshTick]     = useState(0)
+
   const panelWrapperRef = useRef<HTMLDivElement>(null)
   const [panelHeight,  setPanelHeight]  = useState<number>(0)
 
@@ -152,10 +163,22 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
           })
           setEnableMockData(s.developer?.enableMockData ?? true)
           setEnableAnalyze(s.developer?.enableAnalyze ?? true)
+          setJiraEnabled(s.jira?.enabled ?? false)
+          setJiraBaseUrl(s.jira?.baseUrl ?? '')
+          setJiraEmail(s.jira?.email ?? '')
+          setJiraApiToken(s.jira?.apiToken ?? '')
+          setJiraProjectKeys(
+            (s.jira?.projects ?? []).map((p: { projectKey: string }) => p.projectKey).filter(Boolean)
+          )
         } else {
           setEnabledPlatforms({ jira: false, linear: false })
           setEnableMockData(true)
           setEnableAnalyze(true)
+          setJiraEnabled(false)
+          setJiraBaseUrl('')
+          setJiraEmail('')
+          setJiraApiToken('')
+          setJiraProjectKeys([])
         }
       } catch {}
     }
@@ -167,6 +190,51 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
       window.removeEventListener('storage', readSettings)
     }
   }, [])
+
+  // Fetch live Jira bugs whenever relevant settings change
+  useEffect(() => {
+    if (enableMockData || !jiraEnabled || !jiraBaseUrl || !jiraEmail || !jiraApiToken) {
+      setLiveJiraBugs([])
+      setJiraLoading(false)
+      setJiraError(null)
+      return
+    }
+
+    let cancelled = false
+    setJiraLoading(true)
+    setJiraError(null)
+
+    fetch('/api/jira/issues', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ baseUrl: jiraBaseUrl, email: jiraEmail, apiToken: jiraApiToken, projectKeys: jiraProjectKeys }),
+    })
+      .then((r) => r.json())
+      .then((data) => {
+        if (cancelled) return
+        if (data.error) {
+          setJiraError(data.error)
+          setLiveJiraBugs([])
+        } else {
+          setLiveJiraBugs(
+            (data.bugs ?? []).map((b: Bug & { createdAt: string }) => ({ ...b, createdAt: new Date(b.createdAt) }))
+          )
+          setJiraError(null)
+        }
+      })
+      .catch((err: Error) => {
+        if (cancelled) return
+        setJiraError(err.message ?? 'Failed to fetch Jira issues')
+        setLiveJiraBugs([])
+      })
+      .finally(() => {
+        if (!cancelled) setJiraLoading(false)
+      })
+
+    return () => { cancelled = true }
+  // jiraProjectKeys is an array — join to a string so the effect only re-runs when keys actually change
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enableMockData, jiraEnabled, jiraBaseUrl, jiraEmail, jiraApiToken, jiraProjectKeys.join(','), refreshTick])
 
   useEffect(() => {
     if (!selectedBug) return
@@ -199,7 +267,7 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
     if (!showPlatformFilter) setPlatform('all')
   }, [showPlatformFilter])
 
-  const activeBugs = enableMockData ? bugs : []
+  const activeBugs = enableMockData ? bugs : liveJiraBugs
   const sourceBugs = anyEnabled ? activeBugs.filter((b) => enabledPlatforms[b.platform]) : activeBugs
 
   const statusOptions: { value: StatusFilter; label: string }[] = [
@@ -242,7 +310,7 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
     setExpandedBugId((prev) => prev === bugId ? null : bugId)
   }, [])
 
-  if (!enableMockData && activeBugs.length === 0) {
+  if (!enableMockData && !jiraLoading && activeBugs.length === 0 && !jiraError) {
     return (
       <>
         <div className="mb-8">
@@ -272,6 +340,25 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
       <div className="flex gap-5 items-start">
         {/* ── Bug list ── */}
         <div data-testid="issues-table" className="flex-1 min-w-0 border border-[#1a1a1a] rounded-lg overflow-hidden">
+
+          {/* Loading / error banners */}
+          {jiraLoading && (
+            <div className="px-5 py-2.5 border-b border-[#1a1a1a] flex items-center gap-2 text-xs text-[#888]">
+              <svg className="animate-spin" width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="2" strokeDasharray="28" strokeDashoffset="10" />
+              </svg>
+              Fetching Jira issues…
+            </div>
+          )}
+          {jiraError && (
+            <div className="px-5 py-2.5 border-b border-[#1a1a1a] flex items-center gap-2 text-xs text-[#ef4444]">
+              <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                <circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" />
+                <path d="M8 5v4M8 11v.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+              {jiraError}
+            </div>
+          )}
 
           {/* Toolbar */}
           <div className="px-5 py-3 border-b border-[#1a1a1a] flex items-center gap-3 flex-wrap">
@@ -307,7 +394,26 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
               </button>
             )}
 
-            <span className="text-xs text-[#555] ml-auto">{filtered.length} bugs</span>
+            <div className="ml-auto flex items-center gap-3">
+              {!enableMockData && jiraEnabled && (
+                <button
+                  data-testid="refresh-btn"
+                  onClick={() => setRefreshTick((t) => t + 1)}
+                  disabled={jiraLoading}
+                  className="flex items-center gap-1.5 text-xs text-[#555] hover:text-[#888] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                >
+                  <svg
+                    width="11" height="11" viewBox="0 0 16 16" fill="none"
+                    className={jiraLoading ? 'animate-spin' : ''}
+                  >
+                    <path d="M13.5 8A5.5 5.5 0 1 1 10 3.07" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                    <path d="M10 1v3h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  Refresh
+                </button>
+              )}
+              <span className="text-xs text-[#555]">{filtered.length} bugs</span>
+            </div>
           </div>
 
           {/* Column headers */}

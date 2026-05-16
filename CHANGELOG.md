@@ -6,6 +6,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-05-16
+
+### Added
+- Live Jira integration: new `POST /api/jira/issues` API route that proxies to Jira's REST API with Basic auth, avoiding browser CORS restrictions
+- Live Jira bug fetching in `BugTable`: reads Jira credentials from localStorage and displays real-time issues when mock mode is disabled
+- Loading and error banners in the bug table toolbar showing fetch status and error messages
+- Refresh button in the toolbar to manually re-fetch live Jira issues
+
+### Changed
+- `BugTable` now switches between mock and live data sources based on `developer.enableMockData` setting
+- Migrated Jira API endpoint from deprecated `/rest/api/3/search` to `/rest/api/3/search/jql` with JQL-based filtering
+- Updated CLAUDE.md with corrected typecheck command (`bun x tsc --noEmit`) and documented the new Jira API integration pattern
+
+### Fixed
+- 410 error from deprecated Jira search endpoint by migrating to `/rest/api/3/search/jql`
+
 ## [0.6.0] - 2026-05-16
 
 ### Added
