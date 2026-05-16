@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
+import { TestIdHighlighter } from '@/components/dev/test-id-highlighter'
 import './globals.css'
 
 const geistSans = Geist({
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
       <body className="bg-[#000] text-white antialiased">
+        <TestIdHighlighter />
         {children}
       </body>
     </html>

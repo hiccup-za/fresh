@@ -21,13 +21,13 @@ const nav = [
 ]
 
 const MOCK_USER = {
-  name: 'Chris Zeuch',
+  name: 'Chris',
   email: 'chriszeuch.cz@gmail.com',
   plan: 'Free' as 'Free' | 'Pro',
   initials: 'CZ',
 }
 
-const APP_VERSION = 'v0.5.0'
+const APP_VERSION = 'v0.6.0'
 
 interface SidebarProps {
   collapsed: boolean
@@ -100,6 +100,7 @@ export function Sidebar({ collapsed }: SidebarProps) {
             <Link
               key={href}
               href={href}
+              data-testid={`nav-${label.toLowerCase()}`}
               title={collapsed ? label : undefined}
               className={[
                 'flex items-center gap-2.5 rounded-md text-sm transition-colors',
@@ -120,7 +121,7 @@ export function Sidebar({ collapsed }: SidebarProps) {
       <div className="border-t border-[#1a1a1a] p-2 shrink-0 relative" ref={dropdownRef}>
         {/* Dropdown — renders above the button */}
         {dropdownOpen && (
-          <div className={[
+          <div data-testid="user-dropdown-menu" className={[
             'absolute bottom-full mb-1 bg-[#111] border border-[#1a1a1a] rounded-lg shadow-xl overflow-hidden',
             collapsed ? 'left-14 w-56' : 'left-2 right-2',
           ].join(' ')}>
@@ -131,20 +132,20 @@ export function Sidebar({ collapsed }: SidebarProps) {
                   <span className="text-xs font-semibold text-white">{MOCK_USER.initials}</span>
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-white truncate">{MOCK_USER.name}</p>
+                  <p data-testid="user-dropdown-name" className="text-sm font-medium text-white truncate">{MOCK_USER.name}</p>
                 </div>
               </div>
               <div className="mt-2 flex items-center gap-1.5">
                 {userPlan === 'Pro' ? (
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-[#1a1a1a] text-amber-400 border border-amber-400/30">
+                  <span data-testid="user-dropdown-plan" className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-[#1a1a1a] text-amber-400 border border-amber-400/30">
                     Pro
                   </span>
                 ) : (
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-[#1a1a1a] text-[#888] border border-[#333]">
+                  <span data-testid="user-dropdown-plan" className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-[#1a1a1a] text-[#888] border border-[#333]">
                     Free
                   </span>
                 )}
-                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-[#1a1a1a] text-[#888] border border-[#333]">
+                <span data-testid="user-dropdown-version" className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-[#1a1a1a] text-[#888] border border-[#333]">
                   {APP_VERSION}
                 </span>
               </div>
@@ -154,6 +155,7 @@ export function Sidebar({ collapsed }: SidebarProps) {
             <div className="p-1">
               <Link
                 href="/settings"
+                data-testid="user-dropdown-settings"
                 onClick={() => setDropdownOpen(false)}
                 className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm text-[#888] hover:text-white hover:bg-[#1a1a1a] transition-colors w-full"
               >
@@ -165,6 +167,7 @@ export function Sidebar({ collapsed }: SidebarProps) {
             {/* Logout */}
             <div className="p-1 border-t border-[#1a1a1a]">
               <button
+                data-testid="user-dropdown-signout"
                 onClick={() => { setDropdownOpen(false); router.push('/login') }}
                 className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm text-[#888] hover:text-red-400 hover:bg-[#1a1a1a] transition-colors w-full"
               >
@@ -177,6 +180,7 @@ export function Sidebar({ collapsed }: SidebarProps) {
 
         {/* Profile button */}
         <button
+          data-testid="user-dropdown-button"
           onClick={() => setDropdownOpen(o => !o)}
           title={collapsed ? MOCK_USER.name : undefined}
           className={[

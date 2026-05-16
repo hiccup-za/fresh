@@ -34,18 +34,24 @@ This is **Next.js 16**, not 15. Before writing any Next.js-specific code, read t
 - `apps/web/` — the only application, a Next.js 16 App Router app
 - `packages/` — empty, reserved for future shared packages
 
+**Route groups** in `app/`:
+- `(auth)/login` — mock-only login page; any valid-format credentials pass, no backend auth
+- `(app)/dashboard` and `(app)/settings` — main app pages wrapped in the Shell layout
+- `api/slack/send/` — POST route validating webhook URL and forwarding Slack Block Kit payload
+
 **`apps/web/src/` structure:**
 
 ```
 app/
   page.tsx              — redirect('/dashboard')
-  layout.tsx            — root layout: Geist font, Shell wrapper, dark bg
-  dashboard/page.tsx    — server component; passes all mock bugs to BugTable
-  settings/page.tsx     — client component; Linear + Jira side-by-side (2-col grid) with enable toggles, Slack section below; persists to localStorage
-  api/slack/send/       — POST route: validates webhook URL, builds report via lib/slack.ts, POSTs to Slack
+  layout.tsx            — root layout: Geist font, TestIdHighlighter, dark bg
+  (auth)/login/         — mock login form; pushes to /dashboard on submit
+  (app)/layout.tsx      — wraps children in Shell (sidebar + main area)
+  (app)/dashboard/      — server component; passes all mock bugs to BugTable
+  (app)/settings/       — Account · Data Sources · Slack · Developer sections; persists to localStorage
 
 lib/
-  types.ts              — Bug, Platform, Freshness, Priority, AnalysisRun, AnalysisOutcome, AppSettings
+  types.ts              — Bug, Platform, Freshness, Priority, AnalysisRun, AnalysisOutcome, AppSettings (incl. DeveloperSettings)
   classify.ts           — getFreshness(date), getRelativeTime(date), getShortRelativeTime(date)
   group.ts              — groupBugsByYearMonth(bugs) → BugGroup[] sorted descending
   slack.ts              — buildSlackReport(bugs) → Slack Block Kit payload
@@ -67,9 +73,19 @@ components/
     jira-panel.tsx      — Jira credentials + project config ('use client')
     linear-panel.tsx    — Linear API key + team/label config ('use client')
     slack-panel.tsx     — Slack webhook URL, schedule picker, "Send now" button ('use client')
+  dev/
+    test-id-highlighter.tsx — mounts in root layout; toggles data-show-test-ids on <html> based on developer.showTestIds setting
 ```
 
 **Data flow**: Mock data → `dashboard/page.tsx` (server) → `BugTable` (client). Freshness is derived at render time via `getFreshness(createdAt)` — never stored. Filtering (platform/priority/status/freshness) runs entirely in `BugTable` state. Settings are localStorage-only (`fresh-settings` key); `BugTable` listens for `fresh-settings-changed` and `storage` events to react to changes. When real integrations are added, replace the mock imports in `dashboard/page.tsx`.
+
+**Developer settings** (`DeveloperSettings` in `AppSettings`): four flags persisted under `fresh-settings.developer` in localStorage:
+- `enableMockData` — also force-enables/disables both platform toggles when flipped
+- `enableAnalyze` — shows/hides the Analyze button and `AnalysisPanel`
+- `showTestIds` — triggers `TestIdHighlighter` to add `data-show-test-ids` to `<html>`, which CSS uses to overlay `data-testid` labels
+- `userPlan` — simulates Free/Pro gating in the Account section
+
+**`data-testid` conventions**: key interactive elements carry `data-testid` attributes (e.g. `login-email`, `settings-save-btn`, `settings-dev-mock-data-toggle`). Enable "Show Data Test IDs" in Developer settings to see all coverage at runtime.
 
 **Slack integration**: `SlackPanel` → `POST /api/slack/send` → `buildSlackReport()` → Slack Incoming Webhook. The API route validates that the webhook URL starts with `https://hooks.slack.com/`. Scheduled delivery is not yet wired — the schedule field is UI-only.
 
@@ -80,3 +96,7 @@ components/
 **Shell / Sidebar**: `Shell` (`components/layout/shell.tsx`) is a client component that holds sidebar collapse state (`useState`). `Sidebar` accepts a `collapsed` prop and animates width between `w-14` (icons only) and `w-56` (icons + labels). Icons come from `@phosphor-icons/react`.
 
 **Styling**: Tailwind CSS v4 (no `tailwind.config.ts` — import-based). Dark-mode Vercel palette: `#000` page bg, `#0a0a0a` cards, `#1a1a1a` borders. Freshness accent colors: `#22c55e` fresh · `#f59e0b` decaying · `#ef4444` stale. `@/*` aliases to `src/*`.
+
+## Sub-directory instructions
+
+`apps/web/CLAUDE.md` (via `AGENTS.md`) warns: this is Next.js 16, not 15 — read `node_modules/next/dist/docs/` before writing Next.js-specific code. The `params`/`searchParams` async requirement and top-level `turbopack` config are the most common trip-wires.

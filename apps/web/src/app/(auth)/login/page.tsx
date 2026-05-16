@@ -70,7 +70,7 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl p-6">
+        <div data-testid="login-container" className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-xl p-6">
           <form onSubmit={handleSubmit} noValidate className="space-y-4">
 
             {/* Form-level error */}
@@ -90,6 +90,7 @@ export default function LoginPage() {
                 Email
               </label>
               <input
+                data-testid="login-email"
                 id="email"
                 type="email"
                 autoComplete="email"
@@ -120,6 +121,7 @@ export default function LoginPage() {
                 Password
               </label>
               <input
+                data-testid="login-password"
                 id="password"
                 type="password"
                 autoComplete="current-password"
@@ -145,6 +147,7 @@ export default function LoginPage() {
 
             {/* Submit */}
             <button
+              data-testid="login-submit"
               type="submit"
               disabled={loading}
               className="w-full mt-2 py-2 px-4 rounded-lg bg-white text-black text-sm font-medium transition-colors hover:bg-[#e5e5e5] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"

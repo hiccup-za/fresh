@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-05-16
+
+### Added
+- Test ID highlighter: developer toggle to visually outline and label all `data-testid` elements on the page via a `data-show-test-ids` attribute on `<html>`
+- `TestIdHighlighter` component mounted in root layout, reacting to `fresh-settings-changed` and `storage` events
+- "Show Data Test IDs" toggle in developer settings
+- Status badges (Mock / Live) on Linear and Jira panel headers reflecting data source state
+- Comprehensive `data-testid` attributes across settings panels for test selector coverage
+- `userPlan` developer toggle to simulate Free / Pro plan gating in the Account section
+
+### Changed
+- Slack panel schedule selector replaced native `<select>` with a custom dropdown component
+- Settings page reorganised into four labelled sections: Account · Data Sources · Slack · Developer
+- `DeveloperSettings` type extended with `showTestIds` and `userPlan` fields
+
 ## [0.5.0] - 2026-05-16
 
 ### Added

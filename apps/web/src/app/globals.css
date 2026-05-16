@@ -32,3 +32,33 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #262626;
 }
+
+/* Developer: Show Data Test IDs */
+html[data-show-test-ids] [data-testid] {
+  outline: 2px solid #f59e0b !important;
+  outline-offset: 1px;
+}
+
+/* Only inject position:relative on statically-positioned elements.
+   Absolute/fixed elements (e.g. dropdown menus) must keep their own positioning. */
+html[data-show-test-ids] [data-testid]:not(.absolute):not(.fixed) {
+  position: relative;
+}
+
+html[data-show-test-ids] [data-testid]::before {
+  content: attr(data-testid);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 9999;
+  background: #f59e0b;
+  color: #000;
+  font-size: 9px;
+  font-family: var(--font-geist-mono, monospace);
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 0 0 3px 0;
+  pointer-events: none;
+  white-space: nowrap;
+}

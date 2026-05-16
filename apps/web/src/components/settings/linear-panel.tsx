@@ -15,6 +15,7 @@ function Field({
   type = 'text',
   placeholder,
   hint,
+  testId,
 }: {
   label: string
   value: string
@@ -22,11 +23,13 @@ function Field({
   type?: string
   placeholder?: string
   hint?: string
+  testId?: string
 }) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-xs text-[#888] font-medium">{label}</label>
       <input
+        data-testid={testId}
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -47,6 +50,7 @@ export function LinearPanel({ value, onChange }: Props) {
         <label className="text-xs text-[#888] font-medium">API Key</label>
         <div className="relative">
           <input
+            data-testid="linear-api-key"
             type={showKey ? 'text' : 'password'}
             value={value.apiKey}
             onChange={(e) => onChange({ ...value, apiKey: e.target.value })}
@@ -54,6 +58,7 @@ export function LinearPanel({ value, onChange }: Props) {
             className="w-full bg-[#0a0a0a] border border-[#1a1a1a] rounded-md px-3 py-2 pr-10 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#333] transition-colors font-mono"
           />
           <button
+            data-testid="linear-api-key-reveal"
             type="button"
             onClick={() => setShowKey(!showKey)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-[#555] hover:text-[#888] transition-colors"
@@ -78,6 +83,7 @@ export function LinearPanel({ value, onChange }: Props) {
         onChange={(v) => onChange({ ...value, teamIds: v })}
         placeholder="team-id-1, team-id-2"
         hint="Comma-separated Linear team IDs"
+        testId="linear-team-ids"
       />
 
       <Field
@@ -86,6 +92,7 @@ export function LinearPanel({ value, onChange }: Props) {
         onChange={(v) => onChange({ ...value, filterLabel: v })}
         placeholder="Bug"
         hint="Only issues with this label will be fetched"
+        testId="linear-filter-label"
       />
     </div>
   )

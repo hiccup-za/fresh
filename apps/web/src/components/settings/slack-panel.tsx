@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import type { SlackSettings } from '@/lib/types'
 
 interface Props {
@@ -22,6 +22,21 @@ export function SlackPanel({ value, onChange }: Props) {
   const [showWebhook, setShowWebhook] = useState(false)
   const [sendState, setSendState] = useState<SendState>('idle')
   const [errorMsg, setErrorMsg] = useState('')
+  const [scheduleOpen, setScheduleOpen] = useState(false)
+  const scheduleRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!scheduleOpen) return
+    function handler(e: MouseEvent) {
+      if (scheduleRef.current && !scheduleRef.current.contains(e.target as Node)) {
+        setScheduleOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handler)
+    return () => document.removeEventListener('mousedown', handler)
+  }, [scheduleOpen])
+
+  const selectedLabel = SCHEDULE_OPTIONS.find((o) => o.value === value.schedule)?.label ?? 'Disabled'
 
   async function sendNow() {
     if (!value.webhookUrl) return
@@ -54,6 +69,7 @@ export function SlackPanel({ value, onChange }: Props) {
         <label className="text-xs text-[#888] font-medium">Webhook URL</label>
         <div className="relative">
           <input
+            data-testid="slack-webhook-url"
             type={showWebhook ? 'text' : 'password'}
             value={value.webhookUrl}
             onChange={(e) => onChange({ ...value, webhookUrl: e.target.value })}
@@ -61,6 +77,7 @@ export function SlackPanel({ value, onChange }: Props) {
             className="w-full bg-[#0a0a0a] border border-[#1a1a1a] rounded-md px-3 py-2 pr-10 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#333] transition-colors font-mono"
           />
           <button
+            data-testid="slack-webhook-reveal"
             type="button"
             onClick={() => setShowWebhook(!showWebhook)}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-[#555] hover:text-[#888] transition-colors"
@@ -85,23 +102,52 @@ export function SlackPanel({ value, onChange }: Props) {
       {/* Schedule */}
       <div className="flex flex-col gap-1.5">
         <label className="text-xs text-[#888] font-medium">Schedule</label>
-        <select
-          value={value.schedule}
-          onChange={(e) => onChange({ ...value, schedule: e.target.value })}
-          className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-[#333] transition-colors appearance-none"
-        >
-          {SCHEDULE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+        <div ref={scheduleRef} className="relative">
+          <button
+            data-testid="slack-schedule"
+            type="button"
+            onClick={() => setScheduleOpen((o) => !o)}
+            className="w-full flex items-center justify-between gap-2 bg-[#0a0a0a] border border-[#1a1a1a] rounded-md px-3 py-2 text-sm text-white hover:border-[#333] focus:outline-none transition-colors"
+          >
+            <span>{selectedLabel}</span>
+            <svg
+              width="12" height="12" viewBox="0 0 10 10" fill="none"
+              className={`shrink-0 transition-transform text-[#555] ${scheduleOpen ? 'rotate-180' : ''}`}
+            >
+              <path d="M2 3.5l3 3 3-3" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+
+          {scheduleOpen && (
+            <div
+              data-testid="slack-schedule-menu"
+              className="absolute top-full left-0 right-0 mt-1 z-20 bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg shadow-xl overflow-hidden"
+            >
+              {SCHEDULE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => { onChange({ ...value, schedule: opt.value }); setScheduleOpen(false) }}
+                  className={[
+                    'w-full text-left px-3 py-2 text-sm transition-colors',
+                    opt.value === value.schedule
+                      ? 'text-white bg-[#1a1a1a]'
+                      : 'text-[#888] hover:text-white hover:bg-[#111]',
+                  ].join(' ')}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
         <p className="text-[11px] text-[#555]">Automated delivery coming soon — use Send now to test</p>
       </div>
 
       {/* Send now */}
       <div className="pt-1 flex items-center gap-3">
         <button
+          data-testid="slack-send-now-btn"
           type="button"
           onClick={sendNow}
           disabled={!value.webhookUrl || sendState === 'sending'}

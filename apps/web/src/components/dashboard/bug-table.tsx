@@ -52,12 +52,14 @@ function FilterDropdown<T extends string>({
   options,
   onChange,
   active,
+  testId,
 }: {
   label: string
   value: T
   options: { value: T; label: string }[]
   onChange: (v: T) => void
   active: boolean
+  testId?: string
 }) {
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
@@ -76,6 +78,7 @@ function FilterDropdown<T extends string>({
   return (
     <div ref={ref} className="relative">
       <button
+        data-testid={testId}
         onClick={() => setOpen((o) => !o)}
         className={[
           'flex items-center gap-1.5 px-3 py-1.5 rounded-md border text-xs transition-colors',
@@ -94,7 +97,7 @@ function FilterDropdown<T extends string>({
       </button>
 
       {open && (
-        <div className="absolute top-full left-0 mt-1 z-20 min-w-36 bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg shadow-xl overflow-hidden">
+        <div data-testid={testId ? `${testId}-menu` : undefined} className="absolute top-full left-0 mt-1 z-20 min-w-36 bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg shadow-xl overflow-hidden">
           {options.map((opt) => (
             <button
               key={opt.value}
@@ -245,11 +248,12 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
         <div className="mb-8">
           <StatsRow bugs={[]} />
         </div>
-        <div className="border border-[#1a1a1a] rounded-lg bg-[#0a0a0a] flex flex-col items-center justify-center py-20 text-center">
+        <div data-testid="no-data-sources" className="border border-[#1a1a1a] rounded-lg bg-[#0a0a0a] flex flex-col items-center justify-center py-20 text-center">
           <p className="text-lg font-semibold text-white mb-2">No data sources connected</p>
           <p className="text-sm text-[#555] mb-6">Enable a platform integration in Settings to start seeing bugs here.</p>
           <Link
             href="/settings"
+            data-testid="no-data-sources-settings-btn"
             className="inline-flex items-center px-4 py-2 rounded-md bg-white text-black text-sm font-medium hover:bg-[#e5e5e5] transition-colors"
           >
             Settings
@@ -267,16 +271,17 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
 
       <div className="flex gap-5 items-start">
         {/* ── Bug list ── */}
-        <div className="flex-1 min-w-0 border border-[#1a1a1a] rounded-lg overflow-hidden">
+        <div data-testid="issues-table" className="flex-1 min-w-0 border border-[#1a1a1a] rounded-lg overflow-hidden">
 
           {/* Toolbar */}
           <div className="px-5 py-3 border-b border-[#1a1a1a] flex items-center gap-3 flex-wrap">
             {showPlatformFilter && (
               <>
-                <div className="flex gap-1 p-1 bg-[#050505] border border-[#1a1a1a] rounded-md">
+                <div data-testid="platform-filter" className="flex gap-1 p-1 bg-[#050505] border border-[#1a1a1a] rounded-md">
                   {PLATFORM_FILTERS.map(({ value, label }) => (
                     <button
                       key={value}
+                      data-testid={`platform-filter-${value}`}
                       onClick={() => setPlatform(value)}
                       className={[
                         'px-3 py-1 rounded text-xs transition-colors',
@@ -292,12 +297,12 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
               </>
             )}
 
-            <FilterDropdown label="Priority"  value={priority}  options={PRIORITY_OPTIONS}  onChange={setPriority}  active={priority  !== 'all'} />
-            <FilterDropdown label="Status"    value={status}    options={statusOptions}      onChange={setStatus}    active={status    !== 'all'} />
-            <FilterDropdown label="Freshness" value={freshness} options={FRESHNESS_OPTIONS}  onChange={setFreshness} active={freshness !== 'all'} />
+            <FilterDropdown label="Priority"  value={priority}  options={PRIORITY_OPTIONS}  onChange={setPriority}  active={priority  !== 'all'} testId="filter-priority" />
+            <FilterDropdown label="Status"    value={status}    options={statusOptions}      onChange={setStatus}    active={status    !== 'all'} testId="filter-status" />
+            <FilterDropdown label="Freshness" value={freshness} options={FRESHNESS_OPTIONS}  onChange={setFreshness} active={freshness !== 'all'} testId="filter-freshness" />
 
             {hasActiveFilter && (
-              <button onClick={clearAll} className="text-xs text-[#555] hover:text-[#888] transition-colors ml-1">
+              <button data-testid="filters-clear" onClick={clearAll} className="text-xs text-[#555] hover:text-[#888] transition-colors ml-1">
                 Clear
               </button>
             )}

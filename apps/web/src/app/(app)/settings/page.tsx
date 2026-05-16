@@ -7,7 +7,7 @@ import { SlackPanel } from '@/components/settings/slack-panel'
 import type { AppSettings } from '@/lib/types'
 
 const MOCK_ACCOUNT = {
-  name: 'Chris Zeuch',
+  name: 'Chris',
   email: 'chriszeuch.cz@gmail.com',
   plan: 'Free' as 'Free' | 'Pro',
 }
@@ -35,17 +35,19 @@ const defaults: AppSettings = {
   developer: {
     enableMockData: true,
     enableAnalyze: true,
+    showTestIds: false,
     userPlan: 'Free',
   },
 }
 
-function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
+function Toggle({ enabled, onToggle, testId }: { enabled: boolean; onToggle: () => void; testId?: string }) {
   return (
     <button
       type="button"
       role="switch"
       aria-checked={enabled}
       onClick={onToggle}
+      data-testid={testId}
       className={[
         'relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none',
         enabled ? 'bg-[#22c55e]' : 'bg-[#333]',
@@ -101,7 +103,7 @@ export default function SettingsPage() {
         <p className="text-sm text-[#888]">Your profile and subscription details</p>
       </div>
 
-      <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg overflow-hidden mb-8">
+      <div data-testid="settings-account-container" className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg overflow-hidden mb-8">
         <div className="p-5 flex flex-col gap-5">
           {/* Name + Plan side by side */}
           <div className="grid grid-cols-2 gap-6">
@@ -109,6 +111,7 @@ export default function SettingsPage() {
             <div className="flex flex-col gap-1.5">
               <label className="text-xs text-[#888] font-medium">Name</label>
               <input
+                data-testid="settings-account-name"
                 type="text"
                 value={accountName}
                 onChange={(e) => setAccountName(e.target.value)}
@@ -122,15 +125,15 @@ export default function SettingsPage() {
               <label className="text-xs text-[#888] font-medium">Plan</label>
               <div className="flex items-center gap-3 flex-wrap">
                 {settings.developer.userPlan === 'Pro' ? (
-                  <span className="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-semibold bg-amber-400/10 text-amber-400 border border-amber-400/30">
+                  <span data-testid="settings-account-plan" className="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-semibold bg-amber-400/10 text-amber-400 border border-amber-400/30">
                     Pro
                   </span>
                 ) : (
                   <>
-                    <span className="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-semibold bg-[#1a1a1a] text-[#888] border border-[#333]">
+                    <span data-testid="settings-account-plan" className="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-semibold bg-[#1a1a1a] text-[#888] border border-[#333]">
                       Free
                     </span>
-                    <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-amber-400/10 text-amber-400 border border-amber-400/30 hover:bg-amber-400/20 transition-colors">
+                    <button data-testid="settings-account-upgrade-btn" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-amber-400/10 text-amber-400 border border-amber-400/30 hover:bg-amber-400/20 transition-colors">
                       <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
                         <path d="M8 1l1.8 3.6L14 5.5l-3 2.9.7 4.1L8 10.4l-3.7 2.1.7-4.1L2 5.5l4.2-.9L8 1Z" fill="currentColor" />
                       </svg>
@@ -145,7 +148,7 @@ export default function SettingsPage() {
           {/* Email */}
           <div className="flex flex-col gap-1.5">
             <label className="text-xs text-[#888] font-medium">Email</label>
-            <p className="text-sm text-[#666]">{MOCK_ACCOUNT.email}</p>
+            <p data-testid="settings-account-email" className="text-sm text-[#666]">{MOCK_ACCOUNT.email}</p>
           </div>
         </div>
       </div>
@@ -156,12 +159,20 @@ export default function SettingsPage() {
         <p className="text-sm text-[#888]">Connect your bug tracking platforms</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 mb-8">
+      <div data-testid="settings-data-sources-container" className="grid grid-cols-2 gap-4 mb-8">
         {/* Linear */}
-        <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg overflow-hidden">
+        <div data-testid="settings-linear-container" className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3 border-b border-[#1a1a1a]">
-            <span className="text-sm font-semibold text-white">Linear</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-white">Linear</span>
+              {settings.linear.enabled && (
+                settings.developer.enableMockData
+                  ? <span data-testid="settings-linear-badge" className="px-1.5 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20">Mock</span>
+                  : <span data-testid="settings-linear-badge" className="px-1.5 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase bg-[#22c55e]/10 text-[#22c55e] border border-[#22c55e]/20">Live</span>
+              )}
+            </div>
             <Toggle
+              testId="settings-linear-toggle"
               enabled={settings.linear.enabled}
               onToggle={() =>
                 setSettings({
@@ -185,10 +196,18 @@ export default function SettingsPage() {
         </div>
 
         {/* Jira */}
-        <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg overflow-hidden">
+        <div data-testid="settings-jira-container" className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg overflow-hidden">
           <div className="flex items-center justify-between px-5 py-3 border-b border-[#1a1a1a]">
-            <span className="text-sm font-semibold text-white">Jira</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-white">Jira</span>
+              {settings.jira.enabled && (
+                settings.developer.enableMockData
+                  ? <span data-testid="settings-jira-badge" className="px-1.5 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20">Mock</span>
+                  : <span data-testid="settings-jira-badge" className="px-1.5 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase bg-[#22c55e]/10 text-[#22c55e] border border-[#22c55e]/20">Live</span>
+              )}
+            </div>
             <Toggle
+              testId="settings-jira-toggle"
               enabled={settings.jira.enabled}
               onToggle={() =>
                 setSettings({
@@ -218,7 +237,7 @@ export default function SettingsPage() {
         <p className="text-sm text-[#888]">Send scheduled bug freshness reports to a Slack channel</p>
       </div>
 
-      <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-6">
+      <div data-testid="settings-slack-container" className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-6">
         <SlackPanel
           value={settings.slack}
           onChange={(slack) => setSettings({ ...settings, slack })}
@@ -229,14 +248,11 @@ export default function SettingsPage() {
       <div className="mt-8 mb-4">
         <div className="flex items-center gap-2 mb-1">
           <h2 className="text-base font-semibold text-[#f59e0b]">Developer</h2>
-          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20">
-            DEV
-          </span>
         </div>
         <p className="text-sm text-[#888]">Settings for development and testing purposes only</p>
       </div>
 
-      <div className="bg-[#0a0a0a] border border-[#f59e0b]/20 rounded-lg overflow-hidden">
+      <div data-testid="settings-developer-container" className="bg-[#0a0a0a] border border-[#f59e0b]/20 rounded-lg overflow-hidden">
         <div className="px-1 py-0.5 bg-[#f59e0b]/5 border-b border-[#f59e0b]/20">
           <span className="px-2 text-[9px] font-bold tracking-widest uppercase text-[#f59e0b]/60">
             Developer options
@@ -252,6 +268,7 @@ export default function SettingsPage() {
               </p>
             </div>
             <Toggle
+              testId="settings-dev-mock-data-toggle"
               enabled={settings.developer.enableMockData}
               onToggle={() => {
                 const enabling = !settings.developer.enableMockData
@@ -273,11 +290,30 @@ export default function SettingsPage() {
               </p>
             </div>
             <Toggle
+              testId="settings-dev-analyze-toggle"
               enabled={settings.developer.enableAnalyze}
               onToggle={() =>
                 setSettings({
                   ...settings,
                   developer: { ...settings.developer, enableAnalyze: !settings.developer.enableAnalyze },
+                })
+              }
+            />
+          </div>
+          <div className="flex items-start justify-between gap-4 pt-5 pb-5 border-b border-[#f59e0b]/10">
+            <div>
+              <p className="text-sm font-medium text-white mb-0.5">Show Data Test IDs</p>
+              <p className="text-xs text-[#666] max-w-sm">
+                Highlight elements that have a <code className="font-mono text-[#f59e0b]/80">data-testid</code> attribute and display their tag name as an overlay. Useful for verifying test selector coverage.
+              </p>
+            </div>
+            <Toggle
+              testId="settings-dev-show-test-ids-toggle"
+              enabled={settings.developer.showTestIds}
+              onToggle={() =>
+                setSettings({
+                  ...settings,
+                  developer: { ...settings.developer, showTestIds: !settings.developer.showTestIds },
                 })
               }
             />
@@ -291,6 +327,7 @@ export default function SettingsPage() {
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
+                data-testid="settings-dev-plan-free-btn"
                 type="button"
                 onClick={() => setSettings({ ...settings, developer: { ...settings.developer, userPlan: 'Free' } })}
                 className={[
@@ -303,6 +340,7 @@ export default function SettingsPage() {
                 Free
               </button>
               <button
+                data-testid="settings-dev-plan-pro-btn"
                 type="button"
                 onClick={() => setSettings({ ...settings, developer: { ...settings.developer, userPlan: 'Pro' } })}
                 className={[
@@ -329,6 +367,7 @@ export default function SettingsPage() {
           </span>
         )}
         <button
+          data-testid="settings-save-btn"
           onClick={save}
           className="px-4 py-2 bg-white text-black text-sm font-medium rounded-md hover:bg-[#e5e5e5] transition-colors"
         >
