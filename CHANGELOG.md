@@ -6,6 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-16
+
+### Added
+- Developer mode toggle on settings page to enable/disable mock data and analysis features
+- Persistent developer preferences in localStorage under `developer` section
+
+### Changed
+- Mock bug data now only displays when Developer Mode is enabled via settings
+- Analyze button and analysis panel visibility controlled by developer toggle for cleaner UI when not testing
+
 ## [0.4.0] - 2026-05-16
 
 ### Added

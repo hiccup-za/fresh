@@ -6,6 +6,12 @@ import { LinearPanel } from '@/components/settings/linear-panel'
 import { SlackPanel } from '@/components/settings/slack-panel'
 import type { AppSettings } from '@/lib/types'
 
+const MOCK_ACCOUNT = {
+  name: 'Chris Zeuch',
+  email: 'chriszeuch.cz@gmail.com',
+  plan: 'Free' as 'Free' | 'Pro',
+}
+
 const STORAGE_KEY = 'fresh-settings'
 
 const defaults: AppSettings = {
@@ -29,6 +35,7 @@ const defaults: AppSettings = {
   developer: {
     enableMockData: true,
     enableAnalyze: true,
+    userPlan: 'Free',
   },
 }
 
@@ -57,6 +64,7 @@ function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void 
 export default function SettingsPage() {
   const [settings, setSettings] = useState<AppSettings>(defaults)
   const [saved, setSaved] = useState(false)
+  const [accountName, setAccountName] = useState(MOCK_ACCOUNT.name)
 
   useEffect(() => {
     try {
@@ -84,10 +92,70 @@ export default function SettingsPage() {
     <div className="px-8 pt-6 pb-8 max-w-4xl">
       <div className="mb-6">
         <h1 className="text-xl font-semibold text-white mb-1">Settings</h1>
-        <p className="text-sm text-[#888]">Configure your task management platform integrations</p>
+        <p className="text-sm text-[#888]">Manage your account and platform integrations</p>
       </div>
 
-      {/* Bug trackers — side by side, Linear left */}
+      {/* Account */}
+      <div className="mb-4">
+        <h2 className="text-base font-semibold text-white mb-1">Account</h2>
+        <p className="text-sm text-[#888]">Your profile and subscription details</p>
+      </div>
+
+      <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg overflow-hidden mb-8">
+        <div className="p-5 flex flex-col gap-5">
+          {/* Name + Plan side by side */}
+          <div className="grid grid-cols-2 gap-6">
+            {/* Name */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-[#888] font-medium">Name</label>
+              <input
+                type="text"
+                value={accountName}
+                onChange={(e) => setAccountName(e.target.value)}
+                placeholder="Your name"
+                className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-md px-3 py-2 text-sm text-white placeholder-[#444] focus:outline-none focus:border-[#333] transition-colors"
+              />
+            </div>
+
+            {/* Plan */}
+            <div className="flex flex-col gap-1.5">
+              <label className="text-xs text-[#888] font-medium">Plan</label>
+              <div className="flex items-center gap-3 flex-wrap">
+                {settings.developer.userPlan === 'Pro' ? (
+                  <span className="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-semibold bg-amber-400/10 text-amber-400 border border-amber-400/30">
+                    Pro
+                  </span>
+                ) : (
+                  <>
+                    <span className="inline-flex items-center px-3 py-1.5 rounded-md text-xs font-semibold bg-[#1a1a1a] text-[#888] border border-[#333]">
+                      Free
+                    </span>
+                    <button className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold bg-amber-400/10 text-amber-400 border border-amber-400/30 hover:bg-amber-400/20 transition-colors">
+                      <svg width="12" height="12" viewBox="0 0 16 16" fill="none">
+                        <path d="M8 1l1.8 3.6L14 5.5l-3 2.9.7 4.1L8 10.4l-3.7 2.1.7-4.1L2 5.5l4.2-.9L8 1Z" fill="currentColor" />
+                      </svg>
+                      Upgrade to Pro
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Email */}
+          <div className="flex flex-col gap-1.5">
+            <label className="text-xs text-[#888] font-medium">Email</label>
+            <p className="text-sm text-[#666]">{MOCK_ACCOUNT.email}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Data Sources */}
+      <div className="mb-4">
+        <h2 className="text-base font-semibold text-white mb-1">Data Sources</h2>
+        <p className="text-sm text-[#888]">Connect your bug tracking platforms</p>
+      </div>
+
       <div className="grid grid-cols-2 gap-4 mb-8">
         {/* Linear */}
         <div className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg overflow-hidden">
@@ -196,7 +264,7 @@ export default function SettingsPage() {
               }}
             />
           </div>
-          <div className="flex items-start justify-between gap-4 pt-5">
+          <div className="flex items-start justify-between gap-4 pt-5 pb-5 border-b border-[#f59e0b]/10">
             <div>
               <p className="text-sm font-medium text-white mb-0.5">Enable Analyze</p>
               <p className="text-xs text-[#666] max-w-sm">
@@ -213,6 +281,40 @@ export default function SettingsPage() {
                 })
               }
             />
+          </div>
+          <div className="flex items-start justify-between gap-4 pt-5">
+            <div>
+              <p className="text-sm font-medium text-white mb-0.5">User Plan</p>
+              <p className="text-xs text-[#666] max-w-sm">
+                Simulate a Free or Pro account to test plan-gated UI.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => setSettings({ ...settings, developer: { ...settings.developer, userPlan: 'Free' } })}
+                className={[
+                  'px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors',
+                  settings.developer.userPlan === 'Free'
+                    ? 'bg-[#f59e0b]/20 text-[#f59e0b] border-[#f59e0b]/40'
+                    : 'bg-transparent text-[#444] border-[#2a2a2a] hover:text-[#666] hover:border-[#333]',
+                ].join(' ')}
+              >
+                Free
+              </button>
+              <button
+                type="button"
+                onClick={() => setSettings({ ...settings, developer: { ...settings.developer, userPlan: 'Pro' } })}
+                className={[
+                  'px-3 py-1.5 rounded-md text-xs font-semibold border transition-colors',
+                  settings.developer.userPlan === 'Pro'
+                    ? 'bg-[#f59e0b]/20 text-[#f59e0b] border-[#f59e0b]/40'
+                    : 'bg-transparent text-[#444] border-[#2a2a2a] hover:text-[#666] hover:border-[#333]',
+                ].join(' ')}
+              >
+                Pro
+              </button>
+            </div>
           </div>
         </div>
       </div>

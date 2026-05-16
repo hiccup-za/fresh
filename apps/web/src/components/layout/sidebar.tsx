@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { Leaf, SignOut } from '@phosphor-icons/react'
+import { useRef, useState, useEffect } from 'react'
+import { Leaf, SignOut, Gear, User } from '@phosphor-icons/react'
 
 const nav = [
   {
@@ -17,34 +18,66 @@ const nav = [
       </svg>
     ),
   },
-  {
-    href: '/settings',
-    label: 'Settings',
-    icon: (
-      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-        <path d="M8 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" stroke="currentColor" strokeWidth="1.5" />
-        <path
-          d="M13.5 8c0-.34-.03-.67-.08-1l1.37-1.07a.5.5 0 0 0 .11-.64l-1.3-2.25a.5.5 0 0 0-.61-.22l-1.61.65a5.5 5.5 0 0 0-.87-.5L10.2 1.5a.5.5 0 0 0-.5-.5H7.3a.5.5 0 0 0-.5.43L6.6 3.07a5.5 5.5 0 0 0-.87.5L4.12 2.92a.5.5 0 0 0-.61.22L2.2 5.38a.5.5 0 0 0 .11.64L3.68 7.08a5.5 5.5 0 0 0 0 1.84L2.3 9.93a.5.5 0 0 0-.11.64l1.3 2.25c.12.21.38.3.61.22l1.61-.65c.28.18.57.35.87.5l.22 1.68c.05.25.27.43.5.43h2.6a.5.5 0 0 0 .5-.43l.21-1.68c.3-.15.6-.32.87-.5l1.61.65c.24.09.5 0 .61-.22l1.3-2.25a.5.5 0 0 0-.11-.64L13.42 9c.05-.32.08-.65.08-1Z"
-          stroke="currentColor"
-          strokeWidth="1.5"
-        />
-      </svg>
-    ),
-  },
 ]
+
+const MOCK_USER = {
+  name: 'Chris Zeuch',
+  email: 'chriszeuch.cz@gmail.com',
+  plan: 'Free' as 'Free' | 'Pro',
+  initials: 'CZ',
+}
+
+const APP_VERSION = 'v0.5.0'
 
 interface SidebarProps {
   collapsed: boolean
 }
 
+function readPlan(): 'Free' | 'Pro' {
+  try {
+    const raw = localStorage.getItem('fresh-settings')
+    if (raw) {
+      const parsed = JSON.parse(raw)
+      return parsed?.developer?.userPlan === 'Pro' ? 'Pro' : 'Free'
+    }
+  } catch {}
+  return 'Free'
+}
+
 export function Sidebar({ collapsed }: SidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
+  const [dropdownOpen, setDropdownOpen] = useState(false)
+  const [userPlan, setUserPlan] = useState<'Free' | 'Pro'>('Free')
+  const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setUserPlan(readPlan())
+    function onSettingsChange() { setUserPlan(readPlan()) }
+    window.addEventListener('fresh-settings-changed', onSettingsChange)
+    window.addEventListener('storage', onSettingsChange)
+    return () => {
+      window.removeEventListener('fresh-settings-changed', onSettingsChange)
+      window.removeEventListener('storage', onSettingsChange)
+    }
+  }, [])
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false)
+      }
+    }
+    if (dropdownOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [dropdownOpen])
 
   return (
     <aside
       className={[
-        'fixed left-0 top-0 h-full border-r border-[#1a1a1a] bg-[#000] flex flex-col transition-[width] duration-200 overflow-hidden',
+        'fixed left-0 top-0 h-full border-r border-[#1a1a1a] bg-[#000] flex flex-col transition-[width] duration-200 overflow-visible z-40',
         collapsed ? 'w-14' : 'w-56',
       ].join(' ')}
     >
@@ -83,27 +116,85 @@ export function Sidebar({ collapsed }: SidebarProps) {
         })}
       </nav>
 
-      {/* Footer */}
-      <div className={[
-        'border-t border-[#1a1a1a] shrink-0',
-        collapsed ? 'p-2' : 'p-2',
-      ].join(' ')}>
+      {/* Footer — user profile button + dropdown */}
+      <div className="border-t border-[#1a1a1a] p-2 shrink-0 relative" ref={dropdownRef}>
+        {/* Dropdown — renders above the button */}
+        {dropdownOpen && (
+          <div className={[
+            'absolute bottom-full mb-1 bg-[#111] border border-[#1a1a1a] rounded-lg shadow-xl overflow-hidden',
+            collapsed ? 'left-14 w-56' : 'left-2 right-2',
+          ].join(' ')}>
+            {/* User info */}
+            <div className="px-3 py-3 border-b border-[#1a1a1a]">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-full bg-[#1a1a1a] border border-[#333] flex items-center justify-center shrink-0">
+                  <span className="text-xs font-semibold text-white">{MOCK_USER.initials}</span>
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-white truncate">{MOCK_USER.name}</p>
+                </div>
+              </div>
+              <div className="mt-2 flex items-center gap-1.5">
+                {userPlan === 'Pro' ? (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-[#1a1a1a] text-amber-400 border border-amber-400/30">
+                    Pro
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-[#1a1a1a] text-[#888] border border-[#333]">
+                    Free
+                  </span>
+                )}
+                <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-[#1a1a1a] text-[#888] border border-[#333]">
+                  {APP_VERSION}
+                </span>
+              </div>
+            </div>
+
+            {/* Settings */}
+            <div className="p-1">
+              <Link
+                href="/settings"
+                onClick={() => setDropdownOpen(false)}
+                className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm text-[#888] hover:text-white hover:bg-[#1a1a1a] transition-colors w-full"
+              >
+                <Gear size={15} />
+                Settings
+              </Link>
+            </div>
+
+            {/* Logout */}
+            <div className="p-1 border-t border-[#1a1a1a]">
+              <button
+                onClick={() => { setDropdownOpen(false); router.push('/login') }}
+                className="flex items-center gap-2.5 px-2.5 py-2 rounded-md text-sm text-[#888] hover:text-red-400 hover:bg-[#1a1a1a] transition-colors w-full"
+              >
+                <SignOut size={15} />
+                Sign out
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Profile button */}
         <button
-          onClick={() => router.push('/login')}
-          title={collapsed ? 'Sign out' : undefined}
+          onClick={() => setDropdownOpen(o => !o)}
+          title={collapsed ? MOCK_USER.name : undefined}
           className={[
-            'flex items-center gap-2.5 rounded-md text-sm w-full transition-colors text-[#888] hover:text-white hover:bg-[#111]',
-            collapsed ? 'justify-center px-0 py-2' : 'px-3 py-2',
+            'flex items-center rounded-md w-full transition-colors',
+            collapsed ? 'justify-center px-0 py-2' : 'gap-2.5 px-2.5 py-2',
+            dropdownOpen ? 'bg-[#1a1a1a] text-white' : 'text-[#888] hover:text-white hover:bg-[#111]',
           ].join(' ')}
         >
-          <span className="text-[#555]">
-            <SignOut size={16} />
-          </span>
-          {!collapsed && 'Sign out'}
+          <div className="w-6 h-6 rounded-full bg-[#1a1a1a] border border-[#333] flex items-center justify-center shrink-0">
+            <span className="text-[10px] font-semibold text-white">{MOCK_USER.initials}</span>
+          </div>
+          {!collapsed && (
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-sm font-medium truncate leading-tight">{MOCK_USER.name}</p>
+              <p className="text-xs text-[#666] leading-tight">{userPlan}</p>
+            </div>
+          )}
         </button>
-        {!collapsed && (
-          <p className="text-[11px] text-[#555] font-mono px-3 pt-1">v0.4.0</p>
-        )}
       </div>
     </aside>
   )

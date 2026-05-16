@@ -49,6 +49,7 @@ export interface SlackSettings {
 export interface DeveloperSettings {
   enableMockData: boolean
   enableAnalyze: boolean
+  userPlan: 'Free' | 'Pro'
 }
 
 export interface AppSettings {
