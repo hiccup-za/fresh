@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import type { Bug, Platform, Priority, Freshness } from '@/lib/types'
 import { getFreshness } from '@/lib/classify'
 import { groupBugsByYearMonth } from '@/lib/group'
@@ -130,6 +131,8 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
   const [selectedBug,  setSelectedBug]  = useState<Bug | null>(null)
   const [expandedBugId, setExpandedBugId] = useState<string | null>(null)
   const [enabledPlatforms, setEnabledPlatforms] = useState({ jira: false, linear: false })
+  const [enableMockData, setEnableMockData] = useState(true)
+  const [enableAnalyze,  setEnableAnalyze]  = useState(true)
 
   const panelWrapperRef = useRef<HTMLDivElement>(null)
   const [panelHeight,  setPanelHeight]  = useState<number>(0)
@@ -144,8 +147,12 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
             jira:   s.jira?.enabled   ?? false,
             linear: s.linear?.enabled ?? false,
           })
+          setEnableMockData(s.developer?.enableMockData ?? true)
+          setEnableAnalyze(s.developer?.enableAnalyze ?? true)
         } else {
           setEnabledPlatforms({ jira: false, linear: false })
+          setEnableMockData(true)
+          setEnableAnalyze(true)
         }
       } catch {}
     }
@@ -179,10 +186,18 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
   const showSource = !anyEnabled || showPlatformFilter
 
   useEffect(() => {
+    if (!enableAnalyze) {
+      setSelectedBug(null)
+      setExpandedBugId(null)
+    }
+  }, [enableAnalyze])
+
+  useEffect(() => {
     if (!showPlatformFilter) setPlatform('all')
   }, [showPlatformFilter])
 
-  const sourceBugs = anyEnabled ? bugs.filter((b) => enabledPlatforms[b.platform]) : bugs
+  const activeBugs = enableMockData ? bugs : []
+  const sourceBugs = anyEnabled ? activeBugs.filter((b) => enabledPlatforms[b.platform]) : activeBugs
 
   const statusOptions: { value: StatusFilter; label: string }[] = [
     { value: 'all', label: 'All statuses' },
@@ -223,6 +238,26 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
   const handleToggleExpand = useCallback((bugId: string) => {
     setExpandedBugId((prev) => prev === bugId ? null : bugId)
   }, [])
+
+  if (!enableMockData && activeBugs.length === 0) {
+    return (
+      <>
+        <div className="mb-8">
+          <StatsRow bugs={[]} />
+        </div>
+        <div className="border border-[#1a1a1a] rounded-lg bg-[#0a0a0a] flex flex-col items-center justify-center py-20 text-center">
+          <p className="text-lg font-semibold text-white mb-2">No data sources connected</p>
+          <p className="text-sm text-[#555] mb-6">Enable a platform integration in Settings to start seeing bugs here.</p>
+          <Link
+            href="/settings"
+            className="inline-flex items-center px-4 py-2 rounded-md bg-white text-black text-sm font-medium hover:bg-[#e5e5e5] transition-colors"
+          >
+            Settings
+          </Link>
+        </div>
+      </>
+    )
+  }
 
   return (
     <>
@@ -285,7 +320,9 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
           </div>
 
           {filtered.length === 0 ? (
-            <div className="px-5 py-12 text-center text-sm text-[#555]">No bugs match the current filters.</div>
+            <div className="px-5 py-12 text-center">
+              <p className="text-sm text-[#555]">No bugs match the current filters.</p>
+            </div>
           ) : (
             groups.map((group) => (
               <BugGroupSection
@@ -296,13 +333,14 @@ export function BugTable({ bugs }: { bugs: Bug[] }) {
                 expandedBugId={expandedBugId}
                 onToggleExpand={handleToggleExpand}
                 showSource={showSource}
+                enableAnalyze={enableAnalyze}
               />
             ))
           )}
         </div>
 
         {/* ── Analysis panel ── */}
-        {selectedBug && (
+        {selectedBug && enableAnalyze && (
           <div
             ref={panelWrapperRef}
             className="w-[360px] shrink-0 sticky top-8 self-start"

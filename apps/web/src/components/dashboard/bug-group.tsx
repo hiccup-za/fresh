@@ -9,9 +9,10 @@ interface Props {
   expandedBugId: string | null
   onToggleExpand: (bugId: string) => void
   showSource: boolean
+  enableAnalyze: boolean
 }
 
-export function BugGroupSection({ group, onAnalyze, selectedBugId, expandedBugId, onToggleExpand, showSource }: Props) {
+export function BugGroupSection({ group, onAnalyze, selectedBugId, expandedBugId, onToggleExpand, showSource, enableAnalyze }: Props) {
   return (
     <div>
       <div className="sticky top-0 z-10 px-5 py-2 bg-[#000] border-b border-[#1a1a1a] flex items-center justify-between">
@@ -30,6 +31,7 @@ export function BugGroupSection({ group, onAnalyze, selectedBugId, expandedBugId
             isExpanded={bug.id === expandedBugId}
             onToggleExpand={onToggleExpand}
             showSource={showSource}
+            enableAnalyze={enableAnalyze}
           />
         ))}
       </div>

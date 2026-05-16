@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-16
+
+### Added
+- Developer settings section with two feature toggles: "Enable Mock Data" and "Enable Analyze"
+- Empty dashboard state showing "No data sources connected" card with Settings deep-link when mock data is disabled
+- Per-section deep merge for localStorage settings to preserve new developer defaults when loading saved data
+
+### Changed
+- Settings persistence now merges each section (jira, linear, slack, developer) individually to support new settings without losing old saved data
+- Analyze button, expand-to-show-history affordance, and analysis side panel now respect the "Enable Analyze" developer toggle
+- Bug visibility on the dashboard now controlled by the "Enable Mock Data" developer toggle
+
 ## [0.3.0] - 2026-05-16
 
 ### Added

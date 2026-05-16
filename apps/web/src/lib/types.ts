@@ -46,8 +46,14 @@ export interface SlackSettings {
   schedule: string
 }
 
+export interface DeveloperSettings {
+  enableMockData: boolean
+  enableAnalyze: boolean
+}
+
 export interface AppSettings {
   jira: JiraSettings
   linear: LinearSettings
   slack: SlackSettings
+  developer: DeveloperSettings
 }

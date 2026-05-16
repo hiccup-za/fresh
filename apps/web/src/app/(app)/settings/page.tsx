@@ -26,6 +26,10 @@ const defaults: AppSettings = {
     webhookUrl: '',
     schedule: '',
   },
+  developer: {
+    enableMockData: true,
+    enableAnalyze: true,
+  },
 }
 
 function Toggle({ enabled, onToggle }: { enabled: boolean; onToggle: () => void }) {
@@ -57,7 +61,15 @@ export default function SettingsPage() {
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY)
-      if (raw) setSettings((prev) => ({ ...prev, ...JSON.parse(raw) }))
+      if (raw) {
+        const saved = JSON.parse(raw)
+        setSettings({
+          jira:      { ...defaults.jira,      ...saved.jira },
+          linear:    { ...defaults.linear,    ...saved.linear },
+          slack:     { ...defaults.slack,     ...saved.slack },
+          developer: { ...defaults.developer, ...saved.developer },
+        })
+      }
     } catch {}
   }, [])
 
@@ -143,6 +155,66 @@ export default function SettingsPage() {
           value={settings.slack}
           onChange={(slack) => setSettings({ ...settings, slack })}
         />
+      </div>
+
+      {/* Developer */}
+      <div className="mt-8 mb-4">
+        <div className="flex items-center gap-2 mb-1">
+          <h2 className="text-base font-semibold text-[#f59e0b]">Developer</h2>
+          <span className="px-1.5 py-0.5 rounded text-[9px] font-bold tracking-widest uppercase bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20">
+            DEV
+          </span>
+        </div>
+        <p className="text-sm text-[#888]">Settings for development and testing purposes only</p>
+      </div>
+
+      <div className="bg-[#0a0a0a] border border-[#f59e0b]/20 rounded-lg overflow-hidden">
+        <div className="px-1 py-0.5 bg-[#f59e0b]/5 border-b border-[#f59e0b]/20">
+          <span className="px-2 text-[9px] font-bold tracking-widest uppercase text-[#f59e0b]/60">
+            Developer options
+          </span>
+        </div>
+        <div className="p-5 flex flex-col divide-y divide-[#f59e0b]/10">
+          <div className="flex items-start justify-between gap-4 pb-5">
+            <div>
+              <p className="text-sm font-medium text-white mb-0.5">Enable Mock Data</p>
+              <p className="text-xs text-[#666] max-w-sm">
+                Populate the dashboard with sample Jira and Linear bugs. Turn off to simulate a clean
+                first-run experience with no connected data sources.
+              </p>
+            </div>
+            <Toggle
+              enabled={settings.developer.enableMockData}
+              onToggle={() => {
+                const enabling = !settings.developer.enableMockData
+                setSettings({
+                  ...settings,
+                  linear:    { ...settings.linear,    enabled: enabling },
+                  jira:      { ...settings.jira,      enabled: enabling },
+                  developer: { ...settings.developer, enableMockData: enabling },
+                })
+              }}
+            />
+          </div>
+          <div className="flex items-start justify-between gap-4 pt-5">
+            <div>
+              <p className="text-sm font-medium text-white mb-0.5">Enable Analyze</p>
+              <p className="text-xs text-[#666] max-w-sm">
+                Show the Analyze button on bug rows and its side panel. Turn off to hide this
+                functionality while it is not yet ready for use.
+              </p>
+            </div>
+            <Toggle
+              enabled={settings.developer.enableAnalyze}
+              onToggle={() =>
+                setSettings({
+                  ...settings,
+                  developer: { ...settings.developer, enableAnalyze: !settings.developer.enableAnalyze },
+                })
+              }
+            />
+          </div>
+        </div>
       </div>
 
       <div className="mt-4 flex items-center justify-end gap-3">

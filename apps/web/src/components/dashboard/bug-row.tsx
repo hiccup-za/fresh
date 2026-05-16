@@ -83,9 +83,10 @@ interface Props {
   isExpanded: boolean
   onToggleExpand: (bugId: string) => void
   showSource: boolean
+  enableAnalyze: boolean
 }
 
-export function BugRow({ bug, onAnalyze, isSelected, isExpanded, onToggleExpand, showSource }: Props) {
+export function BugRow({ bug, onAnalyze, isSelected, isExpanded, onToggleExpand, showSource, enableAnalyze }: Props) {
   const freshness = getFreshness(bug.createdAt)
   const fConfig   = freshnessConfig[freshness]
   const pConfig   = priorityConfig[bug.priority]
@@ -101,19 +102,22 @@ export function BugRow({ bug, onAnalyze, isSelected, isExpanded, onToggleExpand,
       {/* Clickable row */}
       <div
         className={[
-          'flex items-center gap-4 px-5 py-3.5 transition-colors group cursor-pointer',
+          'flex items-center gap-4 px-5 py-3.5 transition-colors group',
+          enableAnalyze ? 'cursor-pointer' : 'cursor-default',
           !isSelected && 'hover:bg-[#0a0a0a]',
         ].filter(Boolean).join(' ')}
-        onClick={() => onToggleExpand(bug.id)}
+        onClick={() => enableAnalyze && onToggleExpand(bug.id)}
       >
         {/* Chevron */}
         <div className={COL.chevron}>
-          <svg
-            width="10" height="10" viewBox="0 0 10 10" fill="none"
-            className={`transition-transform text-[#444] group-hover:text-[#666] ${isExpanded ? 'rotate-90' : ''}`}
-          >
-            <path d="M3 2l4 3-4 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          {enableAnalyze && (
+            <svg
+              width="10" height="10" viewBox="0 0 10 10" fill="none"
+              className={`transition-transform text-[#444] group-hover:text-[#666] ${isExpanded ? 'rotate-90' : ''}`}
+            >
+              <path d="M3 2l4 3-4 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
         </div>
 
         {/* Source */}
@@ -161,20 +165,24 @@ export function BugRow({ bug, onAnalyze, isSelected, isExpanded, onToggleExpand,
         </span>
 
         {/* Analyze button — visible on hover or when selected */}
-        <button
-          onClick={(e) => { e.stopPropagation(); onAnalyze(bug) }}
-          className={[
-            'w-20 shrink-0 text-[11px] py-1 rounded border transition-all text-center',
-            isSelected
-              ? 'opacity-100 border-[#22c55e]/40 text-[#22c55e] bg-[#22c55e]/10'
-              : 'opacity-0 group-hover:opacity-100 border-[#262626] text-[#555] hover:text-white hover:border-[#444]',
-          ].join(' ')}
-        >
-          {isSelected ? 'Analyzing' : 'Analyze'}
-        </button>
+        {enableAnalyze ? (
+          <button
+            onClick={(e) => { e.stopPropagation(); onAnalyze(bug) }}
+            className={[
+              'w-20 shrink-0 text-[11px] py-1 rounded border transition-all text-center',
+              isSelected
+                ? 'opacity-100 border-[#22c55e]/40 text-[#22c55e] bg-[#22c55e]/10'
+                : 'opacity-0 group-hover:opacity-100 border-[#262626] text-[#555] hover:text-white hover:border-[#444]',
+            ].join(' ')}
+          >
+            {isSelected ? 'Analyzing' : 'Analyze'}
+          </button>
+        ) : (
+          <span className="w-20 shrink-0" />
+        )}
       </div>
 
-      {isExpanded && <HistoryPanel history={history} />}
+      {isExpanded && enableAnalyze && <HistoryPanel history={history} />}
     </div>
   )
 }

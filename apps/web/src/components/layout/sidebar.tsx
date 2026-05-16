@@ -102,7 +102,7 @@ export function Sidebar({ collapsed }: SidebarProps) {
           {!collapsed && 'Sign out'}
         </button>
         {!collapsed && (
-          <p className="text-[11px] text-[#555] font-mono px-3 pt-1">v0.1.0</p>
+          <p className="text-[11px] text-[#555] font-mono px-3 pt-1">v0.4.0</p>
         )}
       </div>
     </aside>
