@@ -6,12 +6,7 @@ import { fetchJiraBugs, fetchLinearBugs } from '@/lib/slack-fetch'
 
 export async function POST(request: Request) {
   const body = await request.json().catch(() => null)
-  const webhookUrl: string | undefined = body?.webhookUrl
   const settings = body?.settings
-
-  if (!webhookUrl || !webhookUrl.startsWith('https://hooks.slack.com/')) {
-    return Response.json({ error: 'Invalid or missing webhook URL' }, { status: 400 })
-  }
 
   const enableMockData = settings?.developer?.enableMockData ?? true
 
@@ -33,18 +28,5 @@ export async function POST(request: Request) {
     bugs = (await Promise.all(fetches)).flat()
   }
 
-  const payload = buildSlackReport(bugs, settings?.slack?.messageFormat)
-
-  const res = await fetch(webhookUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
-
-  if (!res.ok) {
-    const text = await res.text()
-    return Response.json({ error: `Slack returned ${res.status}: ${text}` }, { status: 502 })
-  }
-
-  return Response.json({ ok: true })
+  return Response.json(buildSlackReport(bugs, settings?.slack?.messageFormat))
 }

@@ -41,9 +41,31 @@ export interface LinearSettings {
   filterLabel: string
 }
 
+export interface SlackBugRowFields {
+  priority: boolean
+  status: boolean
+  age: boolean
+  platform: boolean
+}
+
+export interface SlackMessageFormat {
+  title: string
+  introText: string
+  showDate: boolean
+  showStatsSummary: boolean
+  showEmoji: boolean
+  showStaleList: boolean
+  maxStaleBugs: number
+  showDecayingList: boolean
+  maxDecayingBugs: number
+  bugRowFields: SlackBugRowFields
+  footerText: string
+}
+
 export interface SlackSettings {
   webhookUrl: string
   schedule: string
+  messageFormat: SlackMessageFormat
 }
 
 export interface DeveloperSettings {

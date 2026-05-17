@@ -31,6 +31,19 @@ const defaults: AppSettings = {
   slack: {
     webhookUrl: '',
     schedule: '',
+    messageFormat: {
+      title: 'Fresh — Bug Freshness Report',
+      introText: '',
+      showDate: true,
+      showStatsSummary: true,
+      showEmoji: true,
+      showStaleList: true,
+      maxStaleBugs: 10,
+      showDecayingList: false,
+      maxDecayingBugs: 10,
+      bugRowFields: { priority: true, status: true, age: true, platform: true },
+      footerText: '',
+    },
   },
   developer: {
     enableMockData: true,
@@ -76,7 +89,18 @@ export default function SettingsPage() {
         setSettings({
           jira:      { ...defaults.jira,      ...saved.jira },
           linear:    { ...defaults.linear,    ...saved.linear },
-          slack:     { ...defaults.slack,     ...saved.slack },
+          slack: {
+            ...defaults.slack,
+            ...saved.slack,
+            messageFormat: {
+              ...defaults.slack.messageFormat,
+              ...saved.slack?.messageFormat,
+              bugRowFields: {
+                ...defaults.slack.messageFormat.bugRowFields,
+                ...saved.slack?.messageFormat?.bugRowFields,
+              },
+            },
+          },
           developer: { ...defaults.developer, ...saved.developer },
         })
       }
@@ -237,12 +261,11 @@ export default function SettingsPage() {
         <p className="text-sm text-[#888]">Send scheduled bug freshness reports to a Slack channel</p>
       </div>
 
-      <div data-testid="settings-slack-container" className="bg-[#0a0a0a] border border-[#1a1a1a] rounded-lg p-6">
-        <SlackPanel
-          value={settings.slack}
-          onChange={(slack) => setSettings({ ...settings, slack })}
-        />
-      </div>
+      <SlackPanel
+        value={settings.slack}
+        settings={settings}
+        onChange={(slack) => setSettings({ ...settings, slack })}
+      />
 
       {/* Developer */}
       <div className="mt-8 mb-4">
